@@ -16,6 +16,7 @@
 | **Python SDK** | `qfc-sdk-python` | Python + web3.py | ✅ 已完成 | 85% |
 | **CLI 工具** | `qfc-cli` | Node.js + commander | ✅ 已完成 | 90% |
 | **智能合约库** | `qfc-contracts` | Solidity + Hardhat | ✅ 已完成 | 90% |
+| **移动端钱包** | `qfc-wallet-mobile` | React Native + Expo | ✅ 已完成 | 85% |
 
 ---
 
@@ -210,27 +211,37 @@
 
 ---
 
-### 6. 移动端钱包
+### 6. ~~移动端钱包~~ ✅ 已完成
 
 **目标**: iOS 和 Android 原生钱包应用
 
-**仓库**: `qfc-wallet-mobile/` (新建)
+**仓库**: `qfc-wallet-mobile/` - https://github.com/lai3d/qfc-wallet-mobile
 
-**技术栈**: React Native + Expo
+**技术栈**: React Native 0.74 + Expo SDK 52 + Redux Toolkit
 
-**功能规划**:
+**完成内容**:
 
-- [ ] 钱包创建/导入
-- [ ] 生物识别 (Face ID / 指纹)
-- [ ] 发送/接收 QFC
-- [ ] 交易历史
-- [ ] 代币管理
-- [ ] 质押功能
-- [ ] WalletConnect v2 支持
-- [ ] 推送通知
-- [ ] 深度链接 (qfc://)
+- [x] 钱包创建/导入 (助记词, 私钥)
+- [x] 生物识别 (Face ID / 指纹)
+- [x] 发送/接收 QFC (含 QR 扫描)
+- [x] 交易历史 (状态追踪)
+- [x] ERC-20 代币管理
+- [x] 质押功能 (stake, delegate, claim)
+- [x] WalletConnect v2 支持 (基础框架)
+- [x] 深度链接 (qfc://)
+- [x] 主题支持 (亮色/暗色/系统)
+- [x] 网络切换 (主网/测试网)
+- [ ] 推送通知 (待完善)
+- [ ] App Store/Play Store 发布 (待完善)
 
-**预估工作量**: 4-6 周
+**项目结构** (51 文件, 6,666 行):
+- `app/` - Expo Router 屏幕 (文件路由)
+- `src/components/` - UI 组件
+- `src/services/` - 业务逻辑
+- `src/store/` - Redux 状态管理
+- `src/hooks/` - 自定义 Hooks
+
+**完成时间**: 2026-02-02
 
 ---
 
@@ -340,13 +351,11 @@
 ├── ✅ 开发者文档站点 (VitePress, 17 页)
 ├── ✅ Python SDK (web3.py, 31 文件)
 ├── ✅ CLI 工具增强 (commander.js, 18 文件)
-└── ✅ 智能合约示例库 (Hardhat, 11 合约)
+├── ✅ 智能合约示例库 (Hardhat, 11 合约)
+└── ✅ 移动端钱包 (React Native + Expo, 51 文件)
 
 第 1 阶段 (当前):
-└── SDK 单元测试
-
-第 2 阶段 (4+ 周):
-├── 移动端钱包
+├── SDK 单元测试
 └── 钱包/浏览器增强功能
 
 长期:
