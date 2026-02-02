@@ -390,18 +390,25 @@
     - [x] 借用检查 (immutable/mutable)
   - [x] 存储访问 (warm/cold, EIP-2929 style)
   - [x] 日志发射 (Log0-Log4)
-  - [x] 24 个单元测试通过
+  - [x] 42 个单元测试通过
+
+- [x] 标准库实现 (stdlib module)
+  - [x] math: min, max, abs, sqrt, pow, log2, clamp, mulDiv, mulDivUp
+  - [x] crypto: keccak256, sha256, blake3, ecrecover, verify (Ed25519)
+  - [x] collections: array (length, push, pop, get, set, slice, concat)
+  - [x] bytes/string: length, concat, slice
+  - [x] abi: encode, encodePacked, decode, encodeCall
+  - [x] StdlibRegistry 函数注册表
 
 **待完成内容**:
 
 - [ ] JIT 编译 (可选优化)
-- [ ] 标准库实现
 - [ ] 与 EVM 互操作实现
 - [ ] 开发工具 (LSP, 格式化)
 
-**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎)
+**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库)
 
-**预估剩余工作量**: 2-4 周 (标准库 + 互操作)
+**预估剩余工作量**: 1-2 周 (EVM 互操作)
 
 ---
 
