@@ -345,24 +345,52 @@
 
 ---
 
-### 10. QVM 虚拟机 (长期)
+### 10. QVM 虚拟机 (进行中)
 
 **目标**: 实现设计文档中规划的原生虚拟机
 
-**仓库**: `qfc-core/vm/qvm/` (现有结构)
+**仓库**: `qfc-core/vm/qvm/` (待创建)
 
-**说明**: 目前只实现了 EVM 兼容层，QVM 和 QuantumScript 语言尚未开发
+**设计文档**: `10-QUANTUMSCRIPT-SPEC.md`
 
-**任务清单**:
+**已完成内容**:
 
-- [ ] QuantumScript 语言设计
+- [x] QuantumScript 语言设计
+  - [x] 词法结构 (关键字、运算符、注释)
+  - [x] 类型系统 (原始类型、复合类型、资源类型)
+  - [x] 合约结构 (状态、事件、错误、修饰符)
+  - [x] 函数类型 (pure, view, payable, parallel)
+  - [x] 控制流 (if, match, for, while, loop)
+  - [x] 内存模型 (存储布局、所有权、借用)
+  - [x] 并行执行 (parallel 注解、状态访问提示)
+  - [x] 形式化验证 (spec, invariant, requires, ensures)
+  - [x] EVM 互操作 (跨 VM 调用)
+  - [x] 标准库设计 (math, crypto, collections, standards)
+  - [x] Gas 模型
+  - [x] 示例合约 (Token, StakingPool)
+  - [x] 语法规范 (EBNF)
+
+**待完成内容**:
+
 - [ ] 编译器开发 (LLVM 后端)
+  - [ ] 词法分析器 (Lexer)
+  - [ ] 语法分析器 (Parser)
+  - [ ] AST 定义
+  - [ ] 类型检查器
+  - [ ] LLVM IR 生成
+  - [ ] QVM 字节码生成
 - [ ] QVM 执行引擎
-- [ ] 标准库
-- [ ] 与 EVM 互操作
+  - [ ] 字节码格式定义
+  - [ ] 解释器实现
+  - [ ] JIT 编译 (可选)
+  - [ ] Gas 计量
+- [ ] 标准库实现
+- [ ] 与 EVM 互操作实现
 - [ ] 开发工具 (LSP, 格式化)
 
-**预估工作量**: 3-6 个月
+**完成时间**: 2026-02-02 (语言设计)
+
+**预估剩余工作量**: 2-4 个月
 
 ---
 
