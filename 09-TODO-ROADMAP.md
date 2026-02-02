@@ -13,6 +13,7 @@
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
 | **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
 | **开发者文档站点** | `qfc-docs` | VitePress | ✅ 已完成 | 85% |
+| **Python SDK** | `qfc-sdk-python` | Python + web3.py | ✅ 已完成 | 85% |
 | CLI 工具 | `qfc-cli` | Node.js | ⚠️ 基础实现 | 60% |
 
 ---
@@ -144,45 +145,33 @@
 
 ## 中优先级任务
 
-### 4. Python SDK
+### 4. ~~Python SDK~~ ✅ 已完成
 
 **目标**: 为 Python 开发者提供 SDK
 
-**仓库**: `qfc-sdk-python/` (新建)
+**仓库**: `qfc-sdk-python/` - https://github.com/lai3d/qfc-sdk-python
 
 **技术栈**: Python 3.10+, web3.py, pydantic
 
-**功能模块**:
+**完成内容**:
 
-```python
-from qfc import QfcProvider, QfcWallet, parse_qfc, format_qfc
+- [x] 项目初始化 (hatchling 构建)
+- [x] QfcProvider (JSON-RPC 提供者)
+  - [x] 标准以太坊方法 (getBalance, getBlock, etc.)
+  - [x] QFC 特有方法 (getValidators, getContributionScore)
+- [x] QfcWallet (钱包管理)
+  - [x] 私钥/助记词/随机创建
+  - [x] 质押操作 (stake, delegate, claimRewards)
+- [x] StakingClient (高级质押 API)
+- [x] 合约助手
+  - [x] ERC-20, ERC-721, ERC-1155 封装
+  - [x] Multicall3 批量调用
+- [x] Pydantic 类型定义
+- [x] 工具函数 (单位转换、验证、格式化)
+- [x] 单元测试
+- [ ] PyPI 发布 (待完善)
 
-# Provider
-provider = QfcProvider("https://rpc.testnet.qfc.network")
-balance = await provider.get_balance("0x...")
-validators = await provider.get_validators()
-
-# Wallet
-wallet = QfcWallet.from_mnemonic("...", provider)
-tx = await wallet.send_transaction(to="0x...", value=parse_qfc("10"))
-
-# Staking
-await wallet.stake(parse_qfc("1000"))
-await wallet.delegate("0xvalidator...", parse_qfc("500"))
-```
-
-**任务清单**:
-
-- [ ] 项目初始化 (Poetry/PDM)
-- [ ] Provider 实现
-- [ ] Wallet 实现
-- [ ] 质押客户端
-- [ ] 合约交互
-- [ ] 类型提示 (Type Hints)
-- [ ] 单元测试
-- [ ] PyPI 发布
-
-**预估工作量**: 2 周
+**完成时间**: 2026-02-02
 
 ---
 
@@ -391,19 +380,17 @@ qfc-contracts/
 ```
 已完成:
 ├── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
-└── ✅ 开发者文档站点 (VitePress, 17 页)
+├── ✅ 开发者文档站点 (VitePress, 17 页)
+└── ✅ Python SDK (web3.py, 31 文件)
 
 第 1 阶段 (当前):
 └── SDK 单元测试
 
 第 2 阶段 (2-3 周):
-└── CLI 工具增强
-
-第 3 阶段 (2-4 周):
-├── Python SDK
+├── CLI 工具增强
 └── 智能合约示例库
 
-第 4 阶段 (4+ 周):
+第 3 阶段 (4+ 周):
 ├── 移动端钱包
 └── 钱包/浏览器增强功能
 
