@@ -349,7 +349,9 @@
 
 **目标**: 实现设计文档中规划的原生虚拟机
 
-**仓库**: `qfc-core/crates/qfc-qsc/` (QuantumScript 编译器)
+**仓库**:
+- `qfc-core/crates/qfc-qsc/` (QuantumScript 编译器)
+- `qfc-core/crates/qfc-qvm/` (QVM 执行引擎)
 
 **设计文档**: `10-QUANTUMSCRIPT-SPEC.md`
 
@@ -377,23 +379,29 @@
   - [x] 类型检查器 - 类型推导、作用域管理、错误报告
   - [x] QVM 字节码生成 - 操作码定义、指令编码、合约编译
 
+- [x] QVM 执行引擎 (qfc-qvm crate)
+  - [x] 字节码解释器实现 (Executor) - 完整操作码支持
+  - [x] 栈机执行模型 (Stack, Memory, Storage, Heap)
+  - [x] EVM 兼容 Gas 计量 (GasMeter, GasCosts)
+  - [x] 执行上下文 (ExecutionContext) - address, caller, value, block info
+  - [x] 资源系统运行时 (ResourceTracker)
+    - [x] 线性类型检查
+    - [x] 所有权追踪
+    - [x] 借用检查 (immutable/mutable)
+  - [x] 存储访问 (warm/cold, EIP-2929 style)
+  - [x] 日志发射 (Log0-Log4)
+  - [x] 24 个单元测试通过
+
 **待完成内容**:
 
-- [ ] QVM 执行引擎
-  - [ ] 字节码解释器实现
-  - [ ] 栈机执行模型
-  - [ ] JIT 编译 (可选)
-  - [ ] Gas 计量
-- [ ] 资源系统运行时
-  - [ ] 线性类型检查
-  - [ ] 所有权追踪
+- [ ] JIT 编译 (可选优化)
 - [ ] 标准库实现
 - [ ] 与 EVM 互操作实现
 - [ ] 开发工具 (LSP, 格式化)
 
-**完成时间**: 2026-02-02 (语言设计 + 编译器前端)
+**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎)
 
-**预估剩余工作量**: 1-2 个月 (执行引擎)
+**预估剩余工作量**: 2-4 周 (标准库 + 互操作)
 
 ---
 
@@ -412,10 +420,11 @@
 
 第 1 阶段 (当前):
 ├── SDK 单元测试
-└── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
+├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
+└── QVM 标准库 + EVM 互操作
 
 长期:
-└── QVM 虚拟机
+└── QVM JIT 编译优化
 ```
 
 ---
