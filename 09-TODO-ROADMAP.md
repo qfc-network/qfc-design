@@ -8,7 +8,7 @@
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 90% |
-| 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 85% |
+| 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
 | **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
@@ -304,21 +304,32 @@
 
 ---
 
-### 9. 区块浏览器增强
+### 9. ~~区块浏览器增强~~ ✅ 已完成
 
 **仓库**: `qfc-explorer/` (现有)
 
-- [ ] 高级分析仪表板
-  - [ ] TPS 图表
-  - [ ] Gas 使用趋势
-  - [ ] 验证者统计
-- [ ] 数据导出 (CSV/JSON)
-- [ ] 合约源码验证
-- [ ] 合约交互界面 (Read/Write)
-- [ ] 代币持有者排行
-- [ ] API 速率限制仪表板
+**完成内容**:
 
-**预估工作量**: 1-2 周
+- [x] 高级分析仪表板 (/analytics)
+  - [x] TPS 图表 (历史趋势)
+  - [x] Gas 使用趋势
+  - [x] 区块时间图表
+  - [x] 验证者统计表格
+- [x] 数据导出 (CSV/JSON)
+  - [x] 支持 TPS、Gas、区块时间、验证者数据导出
+  - [x] 支持区块和交易列表导出
+- [x] 合约交互界面 (Read/Write)
+  - [x] /contract/[address] 页面
+  - [x] ERC-20 标准函数支持
+  - [x] 自定义 ABI 输入
+  - [x] 合约列表页面 (/contracts)
+- [x] 代币持有者排行 (已在 /token/[address] 实现)
+- [x] API 速率限制仪表板
+  - [x] 内存速率限制 (100 req/min per IP)
+  - [x] Admin 页面实时监控
+  - [x] Top IPs 和 Recent Requests 显示
+
+**完成时间**: 2026-02-02
 
 ---
 
@@ -352,11 +363,12 @@
 ├── ✅ Python SDK (web3.py, 31 文件)
 ├── ✅ CLI 工具增强 (commander.js, 18 文件)
 ├── ✅ 智能合约示例库 (Hardhat, 11 合约)
-└── ✅ 移动端钱包 (React Native + Expo, 51 文件)
+├── ✅ 移动端钱包 (React Native + Expo, 51 文件)
+└── ✅ 区块浏览器增强 (Analytics, Export, Contracts, Rate Limiting)
 
 第 1 阶段 (当前):
 ├── SDK 单元测试
-└── 钱包/浏览器增强功能
+└── 钱包增强功能 (硬件钱包、多语言)
 
 长期:
 └── QVM 虚拟机
