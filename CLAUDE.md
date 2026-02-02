@@ -14,12 +14,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `00-PROJECT-OVERVIEW.md` | 项目总览、技术栈、开发阶段 |
 | `01-BLOCKCHAIN-DESIGN.md` | 区块链核心设计（数据结构、P2P、状态、RPC） |
 | `02-CONSENSUS-MECHANISM.md` | PoC 共识机制详细设计 |
+| `05-BLOCK-EXPLORER.md` | 区块浏览器设计 |
 | `07-WALLET-DESIGN.md` | 浏览器钱包完整技术规范 |
+| `09-TODO-ROADMAP.md` | **待办事项与开发路线图** |
 
 待补充文档：
 - `03-SMART-CONTRACT-SYSTEM.md` - 智能合约系统
 - `04-NODE-OPERATION.md` - 节点运行
-- `05-BLOCK-EXPLORER.md` - 区块浏览器
 - `06-TESTNET-SETUP.md` - 测试网搭建
 
 ## 项目核心创新
@@ -43,12 +44,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 相关实现仓库
 
-| 仓库 | 技术栈 | 说明 |
-|------|--------|------|
-| `qfc-wallet` | React + TypeScript + ethers.js | 浏览器插件钱包 |
-| `qfc-core` | Rust + libp2p | 区块链核心引擎 |
-| `qfc-explorer` | Next.js + PostgreSQL | 区块浏览器 |
-| `qfc-sdk-js` | TypeScript | JavaScript SDK |
+| 仓库 | 技术栈 | 状态 | 说明 |
+|------|--------|------|------|
+| `qfc-core` | Rust + libp2p | ✅ 95% | 区块链核心引擎 |
+| `qfc-wallet` | React + TypeScript + ethers.js | ✅ 90% | 浏览器插件钱包 |
+| `qfc-explorer` | Next.js + PostgreSQL | ✅ 85% | 区块浏览器 |
+| `qfc-sdk-js` | TypeScript + ethers.js | ✅ 85% | JavaScript SDK |
+| `qfc-faucet` | Next.js | ✅ 85% | 测试网水龙头 |
+| `qfc-cli` | Node.js | ⚠️ 60% | 命令行工具 |
 
 ## 关键配置参考
 
