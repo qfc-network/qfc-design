@@ -11,48 +11,47 @@
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 85% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
+| **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
 | CLI 工具 | `qfc-cli` | Node.js | ⚠️ 基础实现 | 60% |
 
 ---
 
 ## 高优先级任务
 
-### 1. 测试网部署基础设施
+### 1. ~~测试网部署基础设施~~ ✅ 已完成
 
 **目标**: 搭建可公开访问的测试网环境
 
-**仓库**: `qfc-testnet/` (新建)
+**仓库**: `qfc-testnet/` - https://github.com/lai3d/qfc-testnet
 
-**任务清单**:
+**完成内容**:
 
-- [ ] Docker Compose 配置
-  - [ ] 多节点 (3-5 个验证者) 本地测试配置
-  - [ ] 单节点开发配置
-  - [ ] 包含 Explorer、Faucet、RPC 的完整栈
+- [x] Docker Compose 配置
+  - [x] 多节点 (5 个验证者) 本地测试配置
+  - [x] 单节点开发配置
+  - [x] 包含 Explorer、Faucet、RPC 的完整栈
+  - [x] Nginx 负载均衡配置
 
-- [ ] Kubernetes 部署
-  - [ ] Helm Charts
-  - [ ] StatefulSet 配置 (节点持久化)
-  - [ ] Service 和 Ingress 配置
-  - [ ] 自动扩缩容策略
+- [x] Kubernetes 部署
+  - [x] Helm Charts
+  - [x] StatefulSet 配置 (节点持久化)
+  - [x] Service 和 Ingress 配置
 
-- [ ] Terraform 云部署
-  - [ ] AWS 配置
-  - [ ] GCP 配置
-  - [ ] 网络和安全组配置
+- [x] Terraform 云部署
+  - [x] AWS 配置 (EKS + RDS + ElastiCache)
+  - [x] GCP 配置 (GKE + Cloud SQL + Memorystore)
+  - [x] VPC 模块
 
-- [ ] 监控系统
-  - [ ] Prometheus 指标收集
-  - [ ] Grafana 仪表板
-  - [ ] AlertManager 告警规则
-  - [ ] 日志聚合 (Loki 或 ELK)
+- [x] 监控系统
+  - [x] Prometheus 指标收集
+  - [x] Grafana 仪表板
+  - [x] AlertManager 告警规则
 
-- [ ] CI/CD 流水线
+- [ ] CI/CD 流水线 (待完善)
   - [ ] GitHub Actions 自动部署
   - [ ] 版本发布流程
-  - [ ] 回滚机制
 
-**预估工作量**: 2-3 周
+**完成时间**: 2026-02-02
 
 ---
 
@@ -405,8 +404,10 @@ qfc-contracts/
 ## 优先级排序建议
 
 ```
-第 1 阶段 (1-2 周):
-├── 测试网部署基础设施 (Docker Compose)
+已完成:
+└── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
+
+第 1 阶段 (当前):
 └── SDK 单元测试
 
 第 2 阶段 (2-3 周):
