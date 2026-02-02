@@ -14,7 +14,7 @@
 | **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
 | **开发者文档站点** | `qfc-docs` | VitePress | ✅ 已完成 | 85% |
 | **Python SDK** | `qfc-sdk-python` | Python + web3.py | ✅ 已完成 | 85% |
-| CLI 工具 | `qfc-cli` | Node.js | ⚠️ 基础实现 | 60% |
+| **CLI 工具** | `qfc-cli` | Node.js + commander | ✅ 已完成 | 90% |
 
 ---
 
@@ -175,66 +175,37 @@
 
 ---
 
-### 5. CLI 工具增强
+### 5. ~~CLI 工具增强~~ ✅ 已完成
 
 **目标**: 提供功能完整的命令行工具
 
-**仓库**: `qfc-cli/` (现有)
+**仓库**: `qfc-cli/` - https://github.com/lai3d/qfc-cli
 
-**技术栈**: 建议迁移到 Rust (与 qfc-core 统一) 或保持 Node.js
+**技术栈**: Node.js + commander.js + ethers.js v6
 
-**功能规划**:
+**完成内容**:
 
-```bash
-# 账户管理
-qfc account create              # 创建新账户
-qfc account import              # 导入私钥/助记词
-qfc account list                # 列出账户
-qfc account balance <address>   # 查询余额
+- [x] 命令框架重构 (commander.js, ESM)
+- [x] 账户管理命令
+  - [x] create, import, list, balance, default, export
+  - [x] 加密 keystore (~/.qfc/keystore/)
+- [x] 交易命令
+  - [x] send, status, get, receipt
+- [x] 质押命令
+  - [x] deposit, withdraw, delegate, undelegate, rewards, info
+- [x] 合约命令
+  - [x] deploy, call, send, code
+- [x] 验证者命令
+  - [x] list, info, register, update-commission
+- [x] 网络命令
+  - [x] info, stats, epoch, list, switch, block, gas-price
+- [x] 配置管理
+  - [x] get, set, unset, reset, path, env
+- [x] 输出格式化 (JSON/Table, chalk, ora)
+- [x] 直接 RPC 命令
+- [ ] Shell 自动补全 (待完善)
 
-# 交易
-qfc tx send --to <addr> --value <amount>
-qfc tx status <hash>
-qfc tx history <address>
-
-# 质押
-qfc stake deposit <amount>
-qfc stake withdraw <amount>
-qfc stake delegate <validator> <amount>
-qfc stake rewards
-
-# 合约
-qfc contract deploy <file> [args...]
-qfc contract call <address> <method> [args...]
-qfc contract verify <address> <source>
-
-# 验证者
-qfc validator register --commission <rate>
-qfc validator info <address>
-qfc validator list
-
-# 网络
-qfc network info
-qfc network peers
-qfc network switch <testnet|mainnet|local>
-
-# 配置
-qfc config set rpc-url <url>
-qfc config set default-account <address>
-```
-
-**任务清单**:
-
-- [ ] 命令框架重构 (commander.js 或 clap)
-- [ ] 账户管理命令
-- [ ] 交易命令
-- [ ] 质押命令
-- [ ] 合约部署/交互命令
-- [ ] 配置管理
-- [ ] 输出格式化 (JSON/Table)
-- [ ] Shell 自动补全
-
-**预估工作量**: 1-2 周
+**完成时间**: 2026-02-02
 
 ---
 
@@ -381,16 +352,14 @@ qfc-contracts/
 已完成:
 ├── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
 ├── ✅ 开发者文档站点 (VitePress, 17 页)
-└── ✅ Python SDK (web3.py, 31 文件)
+├── ✅ Python SDK (web3.py, 31 文件)
+└── ✅ CLI 工具增强 (commander.js, 18 文件)
 
 第 1 阶段 (当前):
-└── SDK 单元测试
-
-第 2 阶段 (2-3 周):
-├── CLI 工具增强
+├── SDK 单元测试
 └── 智能合约示例库
 
-第 3 阶段 (4+ 周):
+第 2 阶段 (4+ 周):
 ├── 移动端钱包
 └── 钱包/浏览器增强功能
 
