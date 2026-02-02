@@ -12,6 +12,7 @@
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
 | **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
+| **开发者文档站点** | `qfc-docs` | VitePress | ✅ 已完成 | 85% |
 | CLI 工具 | `qfc-cli` | Node.js | ⚠️ 基础实现 | 60% |
 
 ---
@@ -93,67 +94,51 @@
 
 ---
 
-### 3. 开发者文档站点
+### 3. ~~开发者文档站点~~ ✅ 已完成
 
 **目标**: 提供完整的开发者文档，方便第三方集成
 
-**仓库**: `qfc-docs/` (新建)
+**仓库**: `qfc-docs/` - https://github.com/lai3d/qfc-docs
 
-**技术栈**: Docusaurus 或 VitePress
+**技术栈**: VitePress 1.0
 
-**内容结构**:
+**完成内容**:
 
-```
-qfc-docs/
-├── docs/
-│   ├── getting-started/
-│   │   ├── introduction.md
-│   │   ├── quick-start.md
-│   │   └── installation.md
-│   ├── core-concepts/
-│   │   ├── blockchain-basics.md
-│   │   ├── poc-consensus.md
-│   │   ├── accounts-and-keys.md
-│   │   └── transactions.md
-│   ├── sdk/
-│   │   ├── javascript/
-│   │   │   ├── overview.md
-│   │   │   ├── provider.md
-│   │   │   ├── wallet.md
-│   │   │   ├── contracts.md
-│   │   │   └── utilities.md
-│   │   └── python/
-│   ├── api-reference/
-│   │   ├── json-rpc.md
-│   │   ├── websocket.md
-│   │   └── rest-api.md
-│   ├── smart-contracts/
-│   │   ├── solidity-guide.md
-│   │   ├── deployment.md
-│   │   └── best-practices.md
-│   ├── validators/
-│   │   ├── requirements.md
-│   │   ├── setup-guide.md
-│   │   └── staking.md
-│   └── tutorials/
-│       ├── build-dapp.md
-│       ├── create-token.md
-│       └── integrate-wallet.md
-├── api/
-│   └── openapi.yaml          # OpenAPI 规范
-└── docusaurus.config.js
-```
+- [x] VitePress 框架搭建
+  - [x] 完整导航配置 (顶部 + 侧边栏)
+  - [x] 首页 Hero 区域
+  - [x] 响应式布局
 
-**任务清单**:
+- [x] 入门指南
+  - [x] QFC 介绍
+  - [x] 5 分钟快速开始
+  - [x] 安装指南
 
-- [ ] 文档框架搭建
-- [ ] API 参考文档 (从代码生成)
-- [ ] SDK 使用教程
-- [ ] 智能合约开发指南
-- [ ] 验证者运行指南
-- [ ] 示例 DApp 教程
+- [x] 核心概念
+  - [x] 区块链基础 (区块、交易、账户、状态)
+  - [x] PoC 共识机制
 
-**预估工作量**: 2-3 周
+- [x] JavaScript SDK 文档
+  - [x] SDK 概览
+  - [x] Provider (RPC 方法)
+  - [x] Wallet (签名与质押)
+  - [x] 合约助手 (ERC-20/721/1155, Multicall)
+  - [x] 工具函数 (单位转换、验证、编码)
+
+- [x] API 参考
+  - [x] 标准 JSON-RPC 方法
+  - [x] QFC 特有方法 (验证者、质押、贡献分)
+
+- [x] 教程
+  - [x] 构建 DApp 完整教程
+
+- [ ] 待完善内容 (可选)
+  - [ ] 智能合约开发指南
+  - [ ] 验证者运行指南
+  - [ ] 更多教程 (创建代币、NFT 部署)
+  - [ ] Python SDK 文档 (待 SDK 开发)
+
+**完成时间**: 2026-02-02
 
 ---
 
@@ -405,13 +390,13 @@ qfc-contracts/
 
 ```
 已完成:
-└── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
+├── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
+└── ✅ 开发者文档站点 (VitePress, 17 页)
 
 第 1 阶段 (当前):
 └── SDK 单元测试
 
 第 2 阶段 (2-3 周):
-├── 文档站点
 └── CLI 工具增强
 
 第 3 阶段 (2-4 周):
