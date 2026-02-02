@@ -7,7 +7,7 @@
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
-| 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 90% |
+| 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
@@ -283,24 +283,36 @@
 
 ## 低优先级任务
 
-### 8. 钱包增强功能
+### 8. 钱包增强功能 (部分完成)
 
 **仓库**: `qfc-wallet/` (现有)
+
+**已完成内容**:
+
+- [x] 多语言支持 (i18n)
+  - [x] 英文 (English)
+  - [x] 中文 (简体中文)
+  - [x] 日文 (日本語)
+  - [x] 韩文 (한국어)
+  - [x] 语言选择器 (Settings 页面)
+  - [x] Chrome Storage 持久化
+  - [x] 所有页面翻译完成 (Home, Send, Receive, Settings, CreateWallet, Unlock, AddToken, ApprovalDialog)
+- [x] 地址簿
+  - [x] 联系人 CRUD 操作
+  - [x] 地址验证
+  - [x] 复制地址功能
+  - [x] 在 Settings 页面入口
+
+**待完成内容**:
 
 - [ ] 硬件钱包支持
   - [ ] Ledger 集成
   - [ ] Trezor 集成
-- [ ] 多语言支持 (i18n)
-  - [ ] 英文
-  - [ ] 中文
-  - [ ] 日文
-  - [ ] 韩文
 - [ ] WalletConnect v2
 - [ ] 交易加速/取消
-- [ ] 地址簿
 - [ ] NFT 展示
 
-**预估工作量**: 2-3 周
+**完成时间**: 2026-02-02 (i18n + 地址簿)
 
 ---
 
@@ -364,11 +376,12 @@
 ├── ✅ CLI 工具增强 (commander.js, 18 文件)
 ├── ✅ 智能合约示例库 (Hardhat, 11 合约)
 ├── ✅ 移动端钱包 (React Native + Expo, 51 文件)
-└── ✅ 区块浏览器增强 (Analytics, Export, Contracts, Rate Limiting)
+├── ✅ 区块浏览器增强 (Analytics, Export, Contracts, Rate Limiting)
+└── ✅ 钱包多语言+地址簿 (i18n 4语言, Address Book)
 
 第 1 阶段 (当前):
 ├── SDK 单元测试
-└── 钱包增强功能 (硬件钱包、多语言)
+└── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
 
 长期:
 └── QVM 虚拟机
