@@ -345,7 +345,7 @@
 
 ---
 
-### 10. QVM 虚拟机 (进行中)
+### 10. ~~QVM 虚拟机~~ ✅ 已完成
 
 **目标**: 实现设计文档中规划的原生虚拟机
 
@@ -419,7 +419,15 @@
   - [x] 存储操作 (sload, sstore)
   - [x] 上下文访问 (caller, value)
   - [x] Gas 计量和 OutOfGas 错误
-  - [x] 69 个测试通过 (59 unit + 10 e2e)
+  - [x] 70 个测试通过 (60 unit + 10 e2e)
+
+- [x] JIT 编译 (Cranelift)
+  - [x] JitCompiler: 函数编译到原生代码
+  - [x] CodeGenerator: QVM 操作码 → Cranelift IR
+  - [x] JitRuntime: 运行时支持 (storage, context)
+  - [x] 编译结果缓存 (可配置大小)
+  - [x] 算术、比较、位运算、控制流支持
+  - [x] 可选 feature: `--features jit`
 
 - [x] 开发工具 (Dev Tools)
   - [x] VS Code 扩展 (qfc-vscode)
@@ -447,13 +455,9 @@
     - [x] `qsc check` - 类型检查
     - [x] `qsc parse` - 调试 AST 输出
 
-**待完成内容**:
+**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库 + EVM 互操作 + 开发工具 + JIT 编译)
 
-- [ ] JIT 编译 (可选优化)
-
-**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库 + EVM 互操作 + 开发工具)
-
-**预估剩余工作量**: 可选优化 (JIT)
+**状态**: ✅ 完成
 
 ---
 
@@ -479,10 +483,8 @@
 ├── ✅ 执行引擎 (qfc-qvm)
 ├── ✅ 标准库 (stdlib)
 ├── ✅ EVM 互操作 (interop)
-└── ✅ 开发工具 (VS Code + LSP + Formatter)
-
-可选优化:
-└── QVM JIT 编译
+├── ✅ 开发工具 (VS Code + LSP + Formatter)
+└── ✅ JIT 编译 (Cranelift)
 ```
 
 ---
