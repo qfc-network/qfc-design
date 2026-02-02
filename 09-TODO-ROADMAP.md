@@ -408,7 +408,18 @@
   - [x] StateCoordinator: 跨 VM 状态追踪
   - [x] ReentrancyGuard: 重入攻击保护
   - [x] EIP-2929/2930 兼容 (warm/cold, access list)
-  - [x] 59 个单元测试通过
+
+- [x] 端到端测试 (e2e tests)
+  - [x] 编译 + 执行完整流程验证
+  - [x] 算术运算 (add, mul, sub)
+  - [x] 比较运算 (gt, lt, eq)
+  - [x] 条件跳转 (if/else)
+  - [x] 循环执行 (while with locals)
+  - [x] 位运算 (and, or, shl, shr)
+  - [x] 存储操作 (sload, sstore)
+  - [x] 上下文访问 (caller, value)
+  - [x] Gas 计量和 OutOfGas 错误
+  - [x] 69 个测试通过 (59 unit + 10 e2e)
 
 **待完成内容**:
 
