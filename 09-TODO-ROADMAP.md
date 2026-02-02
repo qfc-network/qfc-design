@@ -400,15 +400,24 @@
   - [x] abi: encode, encodePacked, decode, encodeCall
   - [x] StdlibRegistry 函数注册表
 
+- [x] EVM 互操作模块 (interop module)
+  - [x] InteropManager: 跨 VM 调用协调
+  - [x] CallBridge: QVM → EVM 调用执行
+  - [x] MultiCall: 批量跨 VM 调用
+  - [x] Erc20Helper: ERC-20 代币高级接口
+  - [x] StateCoordinator: 跨 VM 状态追踪
+  - [x] ReentrancyGuard: 重入攻击保护
+  - [x] EIP-2929/2930 兼容 (warm/cold, access list)
+  - [x] 59 个单元测试通过
+
 **待完成内容**:
 
 - [ ] JIT 编译 (可选优化)
-- [ ] 与 EVM 互操作实现
 - [ ] 开发工具 (LSP, 格式化)
 
-**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库)
+**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库 + EVM 互操作)
 
-**预估剩余工作量**: 1-2 周 (EVM 互操作)
+**预估剩余工作量**: 可选优化 (JIT, LSP)
 
 ---
 
@@ -427,11 +436,16 @@
 
 第 1 阶段 (当前):
 ├── SDK 单元测试
-├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
-└── QVM 标准库 + EVM 互操作
+└── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
 
-长期:
-└── QVM JIT 编译优化
+已完成 QVM:
+├── ✅ 编译器前端 (qfc-qsc)
+├── ✅ 执行引擎 (qfc-qvm)
+├── ✅ 标准库 (stdlib)
+└── ✅ EVM 互操作 (interop)
+
+可选优化:
+└── QVM JIT 编译 + LSP
 ```
 
 ---
