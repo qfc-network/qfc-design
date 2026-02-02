@@ -421,14 +421,39 @@
   - [x] Gas 计量和 OutOfGas 错误
   - [x] 69 个测试通过 (59 unit + 10 e2e)
 
+- [x] 开发工具 (Dev Tools)
+  - [x] VS Code 扩展 (qfc-vscode)
+    - [x] TextMate 语法高亮 (.qs, .qsc 文件)
+    - [x] 25+ 代码片段 (contract, fn, event, erc20, spec 等)
+    - [x] LSP 客户端 (连接 qsc-lsp)
+    - [x] 命令: Restart Server, Format, Compile
+    - [x] 配置: LSP 路径, 跟踪级别
+  - [x] qsc-lsp 语言服务器 (qfc-core/crates/qfc-lsp)
+    - [x] 实时诊断 (词法、语法、类型错误)
+    - [x] 代码补全 (关键字、类型、内置函数)
+    - [x] 悬停信息 (语言构造说明)
+    - [x] 文档大纲 (contracts, functions, structs, events)
+    - [x] stdio 传输协议
+    - [x] 6 个单元测试通过
+  - [x] qsc fmt 代码格式化 (qfc-core/crates/qfc-qsc)
+    - [x] AST 美化输出
+    - [x] 可配置缩进 (空格/制表符, 大小)
+    - [x] 可配置最大行宽
+    - [x] CLI: `qsc fmt <file> [--check] [--write]`
+    - [x] 3 个单元测试通过
+  - [x] qsc CLI 工具 (qfc-core/crates/qfc-qsc)
+    - [x] `qsc compile` - 编译到字节码
+    - [x] `qsc fmt` - 代码格式化
+    - [x] `qsc check` - 类型检查
+    - [x] `qsc parse` - 调试 AST 输出
+
 **待完成内容**:
 
 - [ ] JIT 编译 (可选优化)
-- [ ] 开发工具 (LSP, 格式化)
 
-**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库 + EVM 互操作)
+**完成时间**: 2026-02-02 (语言设计 + 编译器前端 + 执行引擎 + 标准库 + EVM 互操作 + 开发工具)
 
-**预估剩余工作量**: 可选优化 (JIT, LSP)
+**预估剩余工作量**: 可选优化 (JIT)
 
 ---
 
@@ -453,10 +478,11 @@
 ├── ✅ 编译器前端 (qfc-qsc)
 ├── ✅ 执行引擎 (qfc-qvm)
 ├── ✅ 标准库 (stdlib)
-└── ✅ EVM 互操作 (interop)
+├── ✅ EVM 互操作 (interop)
+└── ✅ 开发工具 (VS Code + LSP + Formatter)
 
 可选优化:
-└── QVM JIT 编译 + LSP
+└── QVM JIT 编译
 ```
 
 ---
