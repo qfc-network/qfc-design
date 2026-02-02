@@ -15,6 +15,7 @@
 | **开发者文档站点** | `qfc-docs` | VitePress | ✅ 已完成 | 85% |
 | **Python SDK** | `qfc-sdk-python` | Python + web3.py | ✅ 已完成 | 85% |
 | **CLI 工具** | `qfc-cli` | Node.js + commander | ✅ 已完成 | 90% |
+| **智能合约库** | `qfc-contracts` | Solidity + Hardhat | ✅ 已完成 | 90% |
 
 ---
 
@@ -233,54 +234,39 @@
 
 ---
 
-### 7. 智能合约示例库
+### 7. ~~智能合约示例库~~ ✅ 已完成
 
 **目标**: 提供常用合约模板和示例
 
-**仓库**: `qfc-contracts/` (新建)
+**仓库**: `qfc-contracts/` - https://github.com/lai3d/qfc-contracts
 
-**目录结构**:
+**技术栈**: Solidity 0.8.20 + Hardhat + OpenZeppelin
 
-```
-qfc-contracts/
-├── contracts/
-│   ├── tokens/
-│   │   ├── QFCToken.sol        # ERC-20 示例
-│   │   ├── QFCNFT.sol          # ERC-721 示例
-│   │   └── QFCMultiToken.sol   # ERC-1155 示例
-│   ├── staking/
-│   │   ├── StakingPool.sol
-│   │   └── RewardDistributor.sol
-│   ├── governance/
-│   │   ├── Governor.sol
-│   │   ├── Timelock.sol
-│   │   └── Treasury.sol
-│   ├── defi/
-│   │   ├── SimpleSwap.sol      # 简单 DEX
-│   │   ├── LendingPool.sol
-│   │   └── Vault.sol
-│   └── utils/
-│       ├── Multicall.sol
-│       └── Create2Factory.sol
-├── scripts/
-│   ├── deploy.ts
-│   └── verify.ts
-├── test/
-└── hardhat.config.ts
-```
+**完成内容**:
 
-**任务清单**:
+- [x] Hardhat 项目配置 (TypeScript, 多网络)
+- [x] 代币合约
+  - [x] QFCToken.sol - ERC-20 (mint/burn/permit/batch)
+  - [x] QFCNFT.sol - ERC-721 (enumerable, mint price)
+  - [x] QFCMultiToken.sol - ERC-1155 (supply tracking)
+- [x] 质押合约
+  - [x] StakingPool.sol - 时间加权奖励, 锁定期
+  - [x] RewardDistributor.sol - Merkle 树证明分发
+- [x] 治理合约
+  - [x] QFCGovernor.sol - OpenZeppelin Governor + Timelock
+  - [x] Treasury.sol - 角色访问控制
+- [x] DeFi 合约
+  - [x] SimpleSwap.sol - 恒定乘积 AMM (x*y=k), 0.3% 费率
+  - [x] Vault.sol - ERC4626 风格收益聚合
+- [x] 工具合约
+  - [x] Multicall.sol - 批量调用
+  - [x] Create2Factory.sol - 确定性部署
+- [x] 部署脚本 (deploy.ts, deploy-staking.ts, deploy-defi.ts)
+- [x] 单元测试 (QFCToken.test.ts, SimpleSwap.test.ts)
+- [x] 文档 (README.md, CLAUDE.md)
+- [ ] 更多合约 (LendingPool 待完善)
 
-- [ ] Hardhat 项目配置
-- [ ] ERC-20/721/1155 模板
-- [ ] 质押合约
-- [ ] 治理合约 (基于 OpenZeppelin)
-- [ ] 简单 DEX 示例
-- [ ] 部署脚本
-- [ ] 测试用例
-- [ ] 文档
-
-**预估工作量**: 2 周
+**完成时间**: 2026-02-02
 
 ---
 
@@ -353,11 +339,11 @@ qfc-contracts/
 ├── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
 ├── ✅ 开发者文档站点 (VitePress, 17 页)
 ├── ✅ Python SDK (web3.py, 31 文件)
-└── ✅ CLI 工具增强 (commander.js, 18 文件)
+├── ✅ CLI 工具增强 (commander.js, 18 文件)
+└── ✅ 智能合约示例库 (Hardhat, 11 合约)
 
 第 1 阶段 (当前):
-├── SDK 单元测试
-└── 智能合约示例库
+└── SDK 单元测试
 
 第 2 阶段 (4+ 周):
 ├── 移动端钱包
