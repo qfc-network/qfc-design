@@ -460,6 +460,246 @@ fn detect_double_sign(blocks: &[Block]) -> Vec<(Address, Block, Block)> {
 }
 ```
 
+## 计算贡献 (PoW) 实现
+
+### 概述
+
+计算贡献是 PoC 共识的可选组件，占总评分权重的 20%。验证者可以选择提供算力来增加自己的贡献分数。
+
+### 架构设计
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    QFC 验证者节点                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │   共识引擎   │  │   PoW 矿工   │  │   P2P 网络   │  │
+│  │  (验证/投票) │  │  (可选开启)  │  │  (广播证明)  │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+**运行方式：**
+```bash
+# 普通验证者（无算力贡献）
+qfc-node --validator <KEY>
+
+# 验证者 + 挖矿（贡献算力）
+qfc-node --validator <KEY> --mine --threads 4
+```
+
+### 挖矿算法：Blake3 PoW
+
+选择 Blake3 作为 PoW 算法，原因：
+- QFC 已使用 Blake3 作为哈希函数，代码复用
+- 高性能，CPU 友好
+- 简单易实现
+
+```rust
+/// 工作证明结构
+pub struct WorkProof {
+    pub validator: Address,      // 验证者地址
+    pub epoch: u64,              // Epoch 编号
+    pub nonce: u64,              // 随机数
+    pub hash: Hash,              // 计算结果
+    pub work_count: u64,         // 本 epoch 有效工作数
+    pub timestamp: u64,          // 时间戳
+    pub signature: Signature,    // 签名
+}
+
+/// 挖矿任务
+pub struct MiningTask {
+    pub epoch: u64,              // 当前 epoch
+    pub seed: [u8; 32],          // 挖矿种子
+    pub difficulty: U256,        // 难度目标
+    pub validator: Address,      // 矿工地址
+}
+```
+
+### 工作流程
+
+```
+每个 Epoch (约10秒):
+
+1. 网络发布挖矿难度 + 种子
+   seed = blake3(epoch_number || prev_block_hash)
+
+2. 矿工持续计算
+   while epoch_active:
+       nonce++
+       hash = blake3(seed || validator_addr || nonce)
+       if hash < difficulty:
+           work_count++
+           // 可选：广播单个证明
+
+3. Epoch 结束时提交汇总证明
+   WorkProof {
+       validator,
+       epoch,
+       best_nonce,      // 最小 hash 对应的 nonce
+       best_hash,       // 最小 hash（用于验证）
+       work_count,      // 有效工作数量
+       signature,
+   }
+
+4. 网络验证 & 更新 hashrate
+   - 验证签名
+   - 验证 best_hash 确实 < difficulty
+   - 更新 validator.hashrate = work_count * difficulty_factor
+```
+
+### 难度调整
+
+```rust
+/// 难度调整算法
+/// 目标：全网每 epoch 约 10000 个有效证明
+fn adjust_difficulty(
+    prev_difficulty: U256,
+    actual_proofs: u64,
+    target_proofs: u64,  // 默认 10000
+) -> U256 {
+    // 平滑调整，避免剧烈波动
+    let adjustment = if actual_proofs > target_proofs {
+        // 证明太多，提高难度
+        prev_difficulty * 110 / 100  // +10%
+    } else if actual_proofs < target_proofs / 2 {
+        // 证明太少，降低难度
+        prev_difficulty * 90 / 100   // -10%
+    } else {
+        prev_difficulty
+    };
+
+    // 限制调整范围
+    adjustment.max(MIN_DIFFICULTY).min(MAX_DIFFICULTY)
+}
+```
+
+### Hashrate 计算
+
+```rust
+/// 从工作证明计算 hashrate
+fn calculate_hashrate(proof: &WorkProof, difficulty: &U256) -> u64 {
+    // hashrate = work_count * difficulty_factor / epoch_duration
+    let difficulty_factor = U256::MAX / difficulty;
+    let epoch_duration_secs = 10;
+
+    (proof.work_count as u128 * difficulty_factor.low_u128() / epoch_duration_secs) as u64
+}
+```
+
+### 矿工实现
+
+```rust
+/// 矿工主循环
+async fn mining_loop(
+    validator_key: &SecretKey,
+    task_receiver: Receiver<MiningTask>,
+    proof_sender: Sender<WorkProof>,
+    threads: usize,
+) {
+    let mut current_task: Option<MiningTask> = None;
+    let mut work_count = 0u64;
+    let mut best_nonce = 0u64;
+    let mut best_hash = Hash::MAX;
+
+    loop {
+        // 检查新任务
+        if let Ok(task) = task_receiver.try_recv() {
+            // 新 epoch，提交上一个 epoch 的证明
+            if let Some(old_task) = current_task.take() {
+                let proof = create_proof(&old_task, work_count, best_nonce, best_hash, validator_key);
+                proof_sender.send(proof).await;
+            }
+            current_task = Some(task);
+            work_count = 0;
+            best_hash = Hash::MAX;
+        }
+
+        // 挖矿
+        if let Some(ref task) = current_task {
+            let (nonce, hash) = mine_once(&task.seed, &task.validator, &task.difficulty);
+            if hash < task.difficulty {
+                work_count += 1;
+                if hash < best_hash {
+                    best_hash = hash;
+                    best_nonce = nonce;
+                }
+            }
+        }
+    }
+}
+
+/// 单次挖矿计算
+fn mine_once(seed: &[u8; 32], validator: &Address, difficulty: &U256) -> (u64, Hash) {
+    let nonce = rand::random::<u64>();
+
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(seed);
+    hasher.update(validator.as_bytes());
+    hasher.update(&nonce.to_le_bytes());
+
+    let hash = Hash::from_slice(hasher.finalize().as_bytes());
+    (nonce, hash)
+}
+```
+
+### 验证流程
+
+```rust
+/// 验证工作证明
+fn verify_work_proof(proof: &WorkProof, task: &MiningTask) -> bool {
+    // 1. 验证签名
+    let msg = proof.to_bytes_without_signature();
+    if !verify_signature(&msg, &proof.signature, &proof.validator) {
+        return false;
+    }
+
+    // 2. 验证 epoch 匹配
+    if proof.epoch != task.epoch {
+        return false;
+    }
+
+    // 3. 验证 best_hash
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(&task.seed);
+    hasher.update(proof.validator.as_bytes());
+    hasher.update(&proof.nonce.to_le_bytes());
+    let computed_hash = Hash::from_slice(hasher.finalize().as_bytes());
+
+    if computed_hash != proof.hash {
+        return false;
+    }
+
+    // 4. 验证难度
+    if proof.hash >= task.difficulty {
+        return false;
+    }
+
+    true
+}
+```
+
+### 实现模块
+
+| 模块 | 文件 | 说明 |
+|------|------|------|
+| PoW 核心 | `qfc-pow/src/lib.rs` | 挖矿算法、难度调整 |
+| 矿工线程 | `qfc-node/src/miner.rs` | 后台挖矿、提交证明 |
+| 工作证明类型 | `qfc-types/src/pow.rs` | WorkProof, MiningTask |
+| 证明验证 | `qfc-consensus/src/pow.rs` | 验证证明、更新 hashrate |
+| 网络消息 | `qfc-types/src/validator.rs` | ValidatorMessage::WorkProof |
+| 存储 | `qfc-storage/src/schema.rs` | WORK_PROOFS CF |
+
+### 参数配置
+
+```toml
+[mining]
+enabled = false              # 默认关闭
+threads = 4                  # 挖矿线程数
+target_proofs_per_epoch = 10000  # 每 epoch 目标证明数
+min_difficulty = "0x00000000ffff..."  # 最小难度
+max_difficulty = "0x00000000000000ff..."  # 最大难度
+```
+
 ## 安全分析
 
 ### 攻击成本分析
@@ -661,6 +901,18 @@ slash_double_sign = 0.10  # 降低惩罚（测试用）
 | **检查点系统** | ✅ 完成 | `qfc-consensus/src/engine.rs` | create_checkpoint(), load_checkpoint(), epoch边界自动创建 |
 | **持久化验证者状态** | ✅ 完成 | `qfc-consensus/src/engine.rs` | save_validators(), restore_from_checkpoint(), RocksDB存储 |
 
+### 计算贡献 (PoW) 🔨 待实现
+
+| 功能 | 状态 | 计划位置 | 说明 |
+|------|------|----------|------|
+| **WorkProof 类型** | ❌ 待实现 | `qfc-types/src/pow.rs` | 工作证明、挖矿任务结构 |
+| **Blake3 PoW 算法** | ❌ 待实现 | `qfc-pow/src/lib.rs` | 挖矿核心算法 |
+| **矿工线程** | ❌ 待实现 | `qfc-node/src/miner.rs` | 多线程挖矿、证明提交 |
+| **难度调整** | ❌ 待实现 | `qfc-pow/src/difficulty.rs` | 动态难度调整算法 |
+| **证明验证** | ❌ 待实现 | `qfc-consensus/src/pow.rs` | 验证工作证明、更新 hashrate |
+| **网络广播** | ❌ 待实现 | `qfc-network/` | WorkProof 消息广播/接收 |
+| **CLI 参数** | ❌ 待实现 | `qfc-node/src/main.rs` | --mine, --threads 参数 |
+
 ### 新增类型和存储
 
 | 类型/存储 | 代码位置 | 说明 |
@@ -670,10 +922,13 @@ slash_double_sign = 0.10  # 降低惩罚（测试用）
 | `Undelegation` | `qfc-types/src/validator.rs` | 解除委托记录（7天锁定期） |
 | `ValidatorCheckpoint` | `qfc-types/src/validator.rs` | 验证者状态检查点 |
 | `DoubleSignEvidence` | `qfc-types/src/validator.rs` | 双签证据 |
+| `WorkProof` | `qfc-types/src/pow.rs` | 工作证明 (待实现) |
+| `MiningTask` | `qfc-types/src/pow.rs` | 挖矿任务 (待实现) |
 | `REWARDS` CF | `qfc-storage/src/schema.rs` | 奖励分发记录存储 |
 | `DELEGATIONS` CF | `qfc-storage/src/schema.rs` | 委托关系存储 |
 | `UNDELEGATIONS` CF | `qfc-storage/src/schema.rs` | 解除委托记录存储 |
 | `CHECKPOINTS` CF | `qfc-storage/src/schema.rs` | 检查点存储 |
+| `WORK_PROOFS` CF | `qfc-storage/src/schema.rs` | 工作证明存储 (待实现) |
 
 ### 测试覆盖
 
@@ -703,10 +958,11 @@ slash_double_sign = 0.10  # 降低惩罚（测试用）
 2. ~~**双签检测**: 添加区块签名重复检测机制~~ ✅ 已完成
 3. ~~**委托质押**: 实现委托、佣金、奖励共享~~ ✅ 已完成
 4. ~~**检查点**: 定期状态快照防止长程攻击~~ ✅ 已完成
-5. **压力测试**: 100+ 验证者规模测试 ⚠️ 待进行
+5. **计算贡献 (PoW)**: Blake3 PoW 挖矿、证明验证、难度调整 🔨 进行中
+6. **压力测试**: 100+ 验证者规模测试 ⚠️ 待进行
 
 ---
 
 **最后更新**: 2026-02-03
-**版本**: 2.0.0
+**版本**: 2.1.0
 **维护者**: QFC Core Team
