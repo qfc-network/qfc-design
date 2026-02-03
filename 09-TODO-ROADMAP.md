@@ -1,6 +1,6 @@
 # QFC Blockchain - 待办事项与路线图
 
-> 最后更新: 2026-02-02
+> 最后更新: 2026-02-03
 
 ## 项目现状总览
 
@@ -65,35 +65,69 @@
 
 **任务清单**:
 
-#### qfc-sdk-js
-- [ ] Provider 测试
-  - [ ] RPC 方法调用测试
-  - [ ] 错误处理测试
-  - [ ] 网络切换测试
-- [ ] Wallet 测试
-  - [ ] 签名测试
-  - [ ] 质押操作测试
-- [ ] Utils 测试
-  - [ ] 单位转换测试
-  - [ ] 验证函数测试
-  - [ ] 编码函数测试
-- [ ] Contract 测试
-  - [ ] ERC-20 交互测试
-  - [ ] Multicall 测试
+#### qfc-sdk-js ✅ 已完成 (2026-02-02)
+- [x] Provider 测试
+  - [x] RPC 方法调用测试 (getValidators, getEpoch, getNetworkStats 等)
+  - [x] 错误处理测试
+  - [x] 网络切换测试
+- [x] Wallet 测试
+  - [x] 创建/导入测试 (私钥, 助记词)
+  - [x] 签名测试 (signMessage, signTypedData)
+  - [x] 质押方法存在性测试
+- [x] Utils 测试
+  - [x] 单位转换测试 (parseQfc, formatQfc, parseGwei)
+  - [x] 验证函数测试 (isValidAddress, isValidMnemonic, isValidPrivateKey)
+  - [x] 编码函数测试 (encodeFunctionData, keccak256, abiEncode/Decode)
+  - [x] 格式化函数测试 (shortenAddress, formatRelativeTime)
+- [x] Contract 测试
+  - [x] ERC-20/721/1155 接口测试
+  - [x] Multicall3 测试
+  - [x] isContract 测试
+- [x] Constants 测试
+  - [x] 网络配置测试
+  - [x] Gas 限制测试
+  - [x] 合约地址测试
 
-#### qfc-wallet
-- [ ] 加密存储测试
-- [ ] Provider 注入测试
-- [ ] 交易签名测试
-- [ ] UI 组件测试
+**测试统计**: 8 测试文件, 174 测试用例全部通过
 
-#### qfc-core
-- [ ] 共识算法测试扩展
-- [ ] 跨分片交易测试
-- [ ] 压力测试 / 基准测试
-- [ ] 网络分区测试
+#### qfc-wallet ✅ 已完成 (2026-02-02)
+- [x] 加密模块测试 (encrypt/decrypt, hashPassword, generatePassword)
+- [x] 验证函数测试 (isValidAddress, isValidMnemonic, isValidPrivateKey, validatePassword)
+- [x] 存储模块测试 (walletStorage, txStorage, tokenStorage, networkStorage)
+- [x] 常量测试 (NETWORKS, STORAGE_KEYS, MESSAGE_TYPES)
+- [x] 价格工具测试 (getTokenPrice, calculateUsdValue, formatUsd)
+- [x] WalletController 测试
+  - [x] 钱包创建/导入
+  - [x] 锁定/解锁
+  - [x] 账户管理
+  - [x] 余额查询
+  - [x] 消息签名
+  - [x] 网络切换
 
-**预估工作量**: 2 周
+**测试统计**: 6 测试文件, 144 测试用例全部通过
+
+#### qfc-core ✅ 单元测试已完成 (2026-02-03)
+- [x] 核心模块单元测试 (258 测试用例)
+  - [x] qfc-types: 23 测试 (区块、交易、账户、收据、验证者)
+  - [x] qfc-crypto: 25 测试 (哈希、签名、VRF)
+  - [x] qfc-storage: 34 测试 (RocksDB 存储层)
+  - [x] qfc-trie: 61 测试 (Merkle Patricia Trie)
+  - [x] qfc-state: 5 测试 (状态管理)
+  - [x] qfc-executor: 4 测试 (交易执行)
+  - [x] qfc-mempool: 6 测试 (交易池)
+  - [x] qfc-consensus: 15 测试 (PoC 共识)
+  - [x] qfc-chain: 6 测试 (链管理)
+  - [x] qfc-network: 16 测试 (P2P 网络、同步协议)
+  - [x] qfc-rpc: 14 测试 (JSON-RPC 类型)
+  - [x] qfc-snap-sync: 22 测试 (快照同步)
+  - [x] qfc-state-pruner: 8 测试 (状态剪枝)
+  - [x] qfc-node: 19 测试 (节点主程序)
+- [ ] 高级测试 (待完善)
+  - [ ] 压力测试 / 基准测试
+  - [ ] 网络分区测试
+  - [ ] 多节点集成测试
+
+**测试统计**: 14 测试模块, 258 单元测试全部通过
 
 ---
 
@@ -475,7 +509,9 @@
 └── ✅ 钱包多语言+地址簿 (i18n 4语言, Address Book)
 
 第 1 阶段 (当前):
-├── SDK 单元测试
+├── ✅ SDK 单元测试 (qfc-sdk-js, 174 测试)
+├── ✅ 钱包单元测试 (qfc-wallet, 144 测试)
+├── ✅ 核心引擎单元测试 (qfc-core, 258 测试)
 └── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
 
 已完成 QVM:
