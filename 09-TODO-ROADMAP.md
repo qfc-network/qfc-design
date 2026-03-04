@@ -26,7 +26,7 @@
 
 **目标**: 搭建可公开访问的测试网环境
 
-**仓库**: `qfc-testnet/` - https://github.com/lai3d/qfc-testnet
+**仓库**: `qfc-testnet/` - https://github.com/qfc-network/qfc-testnet
 
 **完成内容**:
 
@@ -135,7 +135,7 @@
 
 **目标**: 提供完整的开发者文档，方便第三方集成
 
-**仓库**: `qfc-docs/` - https://github.com/lai3d/qfc-docs
+**仓库**: `qfc-docs/` - https://github.com/qfc-network/qfc-docs
 
 **技术栈**: VitePress 1.0
 
@@ -185,7 +185,7 @@
 
 **目标**: 为 Python 开发者提供 SDK
 
-**仓库**: `qfc-sdk-python/` - https://github.com/lai3d/qfc-sdk-python
+**仓库**: `qfc-sdk-python/` - https://github.com/qfc-network/qfc-sdk-python
 
 **技术栈**: Python 3.10+, web3.py, pydantic
 
@@ -215,7 +215,7 @@
 
 **目标**: 提供功能完整的命令行工具
 
-**仓库**: `qfc-cli/` - https://github.com/lai3d/qfc-cli
+**仓库**: `qfc-cli/` - https://github.com/qfc-network/qfc-cli
 
 **技术栈**: Node.js + commander.js + ethers.js v6
 
@@ -249,7 +249,7 @@
 
 **目标**: iOS 和 Android 原生钱包应用
 
-**仓库**: `qfc-wallet-mobile/` - https://github.com/lai3d/qfc-wallet-mobile
+**仓库**: `qfc-wallet-mobile/` - https://github.com/qfc-network/qfc-wallet-mobile
 
 **技术栈**: React Native 0.74 + Expo SDK 52 + Redux Toolkit
 
@@ -283,7 +283,7 @@
 
 **目标**: 提供常用合约模板和示例
 
-**仓库**: `qfc-contracts/` - https://github.com/lai3d/qfc-contracts
+**仓库**: `qfc-contracts/` - https://github.com/qfc-network/qfc-contracts
 
 **技术栈**: Solidity 0.8.20 + Hardhat + OpenZeppelin
 

@@ -44,14 +44,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 相关实现仓库
 
+GitHub 组织: https://github.com/qfc-network
+
 | 仓库 | 技术栈 | 状态 | 说明 |
 |------|--------|------|------|
-| `qfc-core` | Rust + libp2p | ✅ 95% | 区块链核心引擎 |
-| `qfc-wallet` | React + TypeScript + ethers.js | ✅ 90% | 浏览器插件钱包 |
-| `qfc-explorer` | Next.js + PostgreSQL | ✅ 85% | 区块浏览器 |
-| `qfc-sdk-js` | TypeScript + ethers.js | ✅ 85% | JavaScript SDK |
+| `qfc-core` | Rust + libp2p | ✅ 95% | 区块链核心引擎 (258 测试, QVM+JIT+LSP) |
+| `qfc-wallet` | React + TypeScript + ethers.js | ✅ 95% | 浏览器插件钱包 (i18n 4语言, 地址簿, 144 测试) |
+| `qfc-explorer` | Next.js + PostgreSQL | ✅ 95% | 区块浏览器 (分析仪表板, 合约交互, 数据导出) |
+| `qfc-sdk-js` | TypeScript + ethers.js | ✅ 85% | JavaScript SDK (174 测试) |
+| `qfc-sdk-python` | Python + web3.py + pydantic | ✅ 85% | Python SDK |
+| `qfc-cli` | Node.js + commander.js | ✅ 90% | 命令行工具 |
+| `qfc-contracts` | Solidity + Hardhat + OpenZeppelin | ✅ 90% | 智能合约库 (11 合约) |
+| `qfc-docs` | VitePress | ✅ 85% | 开发者文档站点 (17 页) |
 | `qfc-faucet` | Next.js | ✅ 85% | 测试网水龙头 |
-| `qfc-cli` | Node.js | ⚠️ 60% | 命令行工具 |
+| `qfc-testnet` | Docker + K8s + Terraform | ✅ 90% | 测试网基础设施 (监控, 多云部署) |
+| `qfc-wallet-mobile` | React Native + Expo | ✅ 85% | 移动端钱包 (iOS/Android) |
+| `qfc-wallet-desktop` | — | 🚧 | 桌面端钱包 |
 
 ## 关键配置参考
 
