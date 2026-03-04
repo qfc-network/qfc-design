@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c0c1d"/>
+      <stop offset="100%" stop-color="#141432"/>
+    </linearGradient>
+    <linearGradient id="grad6a" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="grad6b" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <filter id="glow6">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="256" fill="url(#bg6)"/>
+
+  <!-- Three stacked chain links -->
+  <g opacity="0.12">
+    <ellipse cx="256" cy="200" rx="140" ry="50" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+    <ellipse cx="256" cy="256" rx="140" ry="50" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+    <ellipse cx="256" cy="312" rx="140" ry="50" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+  </g>
+
+  <!-- Central shield shape -->
+  <path d="M 256 120 L 360 180 L 360 330 L 256 400 L 152 330 L 152 180 Z" fill="none" stroke="url(#grad6a)" stroke-width="2" opacity="0.25"/>
+
+  <!-- QFC -->
+  <g filter="url(#glow6)">
+    <text x="256" y="290" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="140" font-weight="800" letter-spacing="6" fill="url(#grad6b)" text-anchor="middle">QFC</text>
+  </g>
+
+  <!-- Thin separator -->
+  <line x1="170" y1="310" x2="342" y2="310" stroke="url(#grad6a)" stroke-width="1.5" opacity="0.5"/>
+
+  <text x="256" y="355" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="300" letter-spacing="14" fill="#818cf8" opacity="0.45" text-anchor="middle">NETWORK</text>
+</svg>

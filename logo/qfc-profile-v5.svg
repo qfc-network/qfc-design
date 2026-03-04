@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#0288d1"/>
+    </linearGradient>
+    <linearGradient id="gold5" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffd54f"/>
+      <stop offset="100%" stop-color="#ffb300"/>
+    </linearGradient>
+    <filter id="glow5">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg5)"/>
+
+  <!-- Diamond / rotated square frame -->
+  <rect x="156" y="156" width="200" height="200" rx="8" fill="none" stroke="url(#grad5)" stroke-width="2" opacity="0.3" transform="rotate(45, 256, 256)"/>
+
+  <!-- Inner diamond -->
+  <rect x="186" y="186" width="140" height="140" rx="4" fill="none" stroke="url(#grad5)" stroke-width="1" opacity="0.15" transform="rotate(45, 256, 256)"/>
+
+  <!-- QFC stacked -->
+  <g filter="url(#glow5)">
+    <!-- Large Q -->
+    <text x="256" y="230" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="120" font-weight="800" fill="url(#gold5)" text-anchor="middle">Q</text>
+    <!-- FC smaller below -->
+    <text x="256" y="320" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="600" letter-spacing="16" fill="url(#grad5)" text-anchor="middle">FC</text>
+  </g>
+
+  <!-- Small dots at diamond corners -->
+  <circle cx="256" cy="115" r="3" fill="#4fc3f7" opacity="0.5"/>
+  <circle cx="397" cy="256" r="3" fill="#4fc3f7" opacity="0.5"/>
+  <circle cx="256" cy="397" r="3" fill="#4fc3f7" opacity="0.5"/>
+  <circle cx="115" cy="256" r="3" fill="#4fc3f7" opacity="0.5"/>
+
+  <!-- Tagline -->
+  <text x="256" y="390" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="300" letter-spacing="10" fill="#4fc3f7" opacity="0.4" text-anchor="middle">NETWORK</text>
+</svg>

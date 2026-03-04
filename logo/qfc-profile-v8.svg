@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#171717"/>
+    </linearGradient>
+    <linearGradient id="grad8" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f0f0f0"/>
+      <stop offset="100%" stop-color="#d4d4d4"/>
+    </linearGradient>
+    <linearGradient id="accent8" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Pure black background -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg8)"/>
+
+  <!-- Minimal border -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#333" stroke-width="1"/>
+
+  <!-- QFC white text -->
+  <text x="256" y="280" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="160" font-weight="800" letter-spacing="8" fill="url(#grad8)" text-anchor="middle">QFC</text>
+
+  <!-- Blue accent dot -->
+  <circle cx="256" cy="310" r="4" fill="url(#accent8)"/>
+
+  <!-- Tagline -->
+  <text x="256" y="355" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="400" letter-spacing="12" fill="#525252" text-anchor="middle">NETWORK</text>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="grad4b" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <filter id="glow4">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg4)"/>
+
+  <!-- Abstract Q shape as main icon -->
+  <g transform="translate(256,240)" filter="url(#glow4)">
+    <!-- Large Q circle -->
+    <circle cx="0" cy="0" r="120" fill="none" stroke="url(#grad4)" stroke-width="28"/>
+    <!-- Q tail / slash -->
+    <line x1="60" y1="60" x2="130" y2="130" stroke="url(#grad4)" stroke-width="28" stroke-linecap="round"/>
+  </g>
+
+  <!-- FC inside the Q -->
+  <text x="256" y="262" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="100" font-weight="700" letter-spacing="8" fill="url(#grad4b)" text-anchor="middle">FC</text>
+
+  <!-- Subtitle below -->
+  <text x="256" y="410" font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="400" letter-spacing="14" fill="#38bdf8" opacity="0.5" text-anchor="middle">NETWORK</text>
+</svg>

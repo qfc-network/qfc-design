@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020c1b"/>
+      <stop offset="100%" stop-color="#0a192f"/>
+    </linearGradient>
+    <linearGradient id="cyan3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#00b0ff"/>
+    </linearGradient>
+    <linearGradient id="blue3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0277bd"/>
+    </linearGradient>
+    <filter id="neon">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="clip3">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg3)"/>
+
+  <!-- Scan lines effect -->
+  <g opacity="0.03" clip-path="url(#clip3)">
+    <rect x="0" y="0" width="512" height="2" fill="#00e5ff"/><rect x="0" y="8" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="16" width="512" height="2" fill="#00e5ff"/><rect x="0" y="24" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="32" width="512" height="2" fill="#00e5ff"/><rect x="0" y="40" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="48" width="512" height="2" fill="#00e5ff"/><rect x="0" y="56" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="64" width="512" height="2" fill="#00e5ff"/><rect x="0" y="72" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="80" width="512" height="2" fill="#00e5ff"/><rect x="0" y="88" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="96" width="512" height="2" fill="#00e5ff"/><rect x="0" y="104" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="112" width="512" height="2" fill="#00e5ff"/><rect x="0" y="120" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="128" width="512" height="2" fill="#00e5ff"/><rect x="0" y="136" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="144" width="512" height="2" fill="#00e5ff"/><rect x="0" y="152" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="160" width="512" height="2" fill="#00e5ff"/><rect x="0" y="168" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="176" width="512" height="2" fill="#00e5ff"/><rect x="0" y="184" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="192" width="512" height="2" fill="#00e5ff"/><rect x="0" y="200" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="208" width="512" height="2" fill="#00e5ff"/><rect x="0" y="216" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="224" width="512" height="2" fill="#00e5ff"/><rect x="0" y="232" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="240" width="512" height="2" fill="#00e5ff"/><rect x="0" y="248" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="256" width="512" height="2" fill="#00e5ff"/><rect x="0" y="264" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="272" width="512" height="2" fill="#00e5ff"/><rect x="0" y="280" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="288" width="512" height="2" fill="#00e5ff"/><rect x="0" y="296" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="304" width="512" height="2" fill="#00e5ff"/><rect x="0" y="312" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="320" width="512" height="2" fill="#00e5ff"/><rect x="0" y="328" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="336" width="512" height="2" fill="#00e5ff"/><rect x="0" y="344" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="352" width="512" height="2" fill="#00e5ff"/><rect x="0" y="360" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="368" width="512" height="2" fill="#00e5ff"/><rect x="0" y="376" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="384" width="512" height="2" fill="#00e5ff"/><rect x="0" y="392" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="400" width="512" height="2" fill="#00e5ff"/><rect x="0" y="408" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="416" width="512" height="2" fill="#00e5ff"/><rect x="0" y="424" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="432" width="512" height="2" fill="#00e5ff"/><rect x="0" y="440" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="448" width="512" height="2" fill="#00e5ff"/><rect x="0" y="456" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="464" width="512" height="2" fill="#00e5ff"/><rect x="0" y="472" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="480" width="512" height="2" fill="#00e5ff"/><rect x="0" y="488" width="512" height="2" fill="#00e5ff"/>
+    <rect x="0" y="496" width="512" height="2" fill="#00e5ff"/><rect x="0" y="504" width="512" height="2" fill="#00e5ff"/>
+  </g>
+
+  <!-- Neon border -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.15"/>
+
+  <!-- Corner brackets - top left -->
+  <path d="M 100 140 L 100 100 L 140 100" fill="none" stroke="url(#cyan3)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Corner brackets - top right -->
+  <path d="M 372 100 L 412 100 L 412 140" fill="none" stroke="url(#cyan3)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Corner brackets - bottom left -->
+  <path d="M 100 372 L 100 412 L 140 412" fill="none" stroke="url(#cyan3)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Corner brackets - bottom right -->
+  <path d="M 372 412 L 412 412 L 412 372" fill="none" stroke="url(#cyan3)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- QFC neon text -->
+  <g filter="url(#neon)">
+    <text x="256" y="290" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="150" font-weight="700" letter-spacing="16" fill="#00e5ff" text-anchor="middle">QFC</text>
+  </g>
+
+  <!-- Bottom line -->
+  <line x1="140" y1="350" x2="372" y2="350" stroke="url(#cyan3)" stroke-width="1" opacity="0.4"/>
+
+  <!-- Version tag style -->
+  <text x="256" y="385" font-family="'SF Mono', 'JetBrains Mono', 'Fira Code', monospace" font-size="18" font-weight="400" letter-spacing="6" fill="#00e5ff" opacity="0.4" text-anchor="middle">NETWORK</text>
+</svg>
