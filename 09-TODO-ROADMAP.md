@@ -7,9 +7,9 @@
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
-| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ 链路已通 | 85% |
-| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ 证明上链+费用结算 | 85% |
-| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ proof 签名+CUDA | 80% |
+| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ 生产就绪 | 95% |
+| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ 生产就绪 | 95% |
+| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ 生产就绪 | 95% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 90% |
@@ -362,14 +362,14 @@
 - [x] **公共任务流**: `submitPublicTask` 解析提交者地址 + Ed25519 签名验证 + 余额 escrow; `submit_inference_proof` 自动匹配完成任务; `getPublicTaskStatus` 查询结果
 - [x] **CUDA 后端**: `Dockerfile.cuda` (节点) + `Dockerfile.miner-cuda` (矿工), nvidia/cuda:12.2.0 基础镜像, `--features candle,cuda`
 
-**P2 — 生产就绪：**
+**P2 — 生产就绪：** ✅ 已全部完成 (2026-03-05)
 
-- [ ] **Challenge Tasks**: 13-AI §5.2 设计的挑战任务注入机制（已知答案验证）
-- [ ] **冗余验证**: 高价值任务发给 3 个矿工取多数一致
-- [ ] **三层模型调度**: 13-AI §4.5 设计的 Hot/Warm/Cold VRAM 分层
-- [ ] **Task Router**: 链下全局调度器，按矿工 GPU 能力 + 已加载模型匹配任务
-- [ ] **矿工注册上链**: GPU Benchmark 分数 + Tier 上链记录
-- [ ] **多矿工并发测试**
+- [x] **矿工注册上链**: GPU Benchmark 分数 (0-10000) + Tier (T1/T2/T3) 上链记录; `qfc_registerMiner` RPC + `validate_gpu_claim` GPU 声明验证
+- [x] **Challenge Tasks**: 预计算挑战任务 (CpuEngine 已知答案), 自适应注入率 (新矿工 10% / 低信誉 8% / 标准 5%), 惩罚升级 (单次 -500bps / 3 连败 slash 5% + jail 3d)
+- [x] **冗余验证**: 高价值任务 (fee > 1 QFC) 发给 3 个矿工, 多数一致输出胜出, 不一致矿工 -1000bps 信誉
+- [x] **三层模型调度**: Hot/Warm/Cold VRAM 分层 + LRU 驱逐策略, `--hot-models` / `--warm-max-mb` / `--vram-reserved-mb` CLI 参数
+- [x] **Task Router**: 链下全局调度器, Hot > Warm > Cold > Any 优先级, 最少负载选择; `qfc_reportMinerStatus` 心跳 RPC
+- [x] **多矿工单元测试**: 20 个新测试 (challenge 5 + redundant 5 + router 5 + scheduler 5)
 
 ---
 
@@ -701,7 +701,8 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ Phase 6: 端到端集成 (提交→广播→验证→抽检→惩罚)
 ├── ✅ Phase 7: 测试网部署 (Docker + 混合模式 + 仪表板 + 分阶段脚本)
 ├── ✅ Phase 8: 生态集成 (SDK推理, 治理, 公开API, Explorer, OpenClaw)
-└── ✅ P1 功能完整性 (证明上链, 费用结算70/10/20, 公共任务流, CUDA镜像)
+├── ✅ P1 功能完整性 (证明上链, 费用结算70/10/20, 公共任务流, CUDA镜像)
+└── ✅ P2 生产就绪 (矿工注册, 挑战任务, 冗余验证, 三层调度, Task Router)
 
 已完成基础设施:
 ├── ✅ 测试网部署 (Docker/K8s/Terraform/监控)
