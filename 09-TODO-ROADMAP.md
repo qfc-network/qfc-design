@@ -12,14 +12,15 @@
 | 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ v2.0 核心完成 | 80% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
-| JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
+| JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 90% |
 | 测试网水龙头 | `qfc-faucet` | Next.js | ✅ 可用 | 85% |
 | **测试网基础设施** | `qfc-testnet` | Docker + K8s + Terraform | ✅ 已完成 | 90% |
 | **开发者文档站点** | `qfc-docs` | VitePress | ✅ 已完成 | 85% |
-| **Python SDK** | `qfc-sdk-python` | Python + web3.py | ✅ 已完成 | 85% |
+| **Python SDK** | `qfc-sdk-python` | Python + web3.py + pydantic | ✅ 已完成 | 90% |
 | **CLI 工具** | `qfc-cli` | Node.js + commander | ✅ 已完成 | 90% |
 | **智能合约库** | `qfc-contracts` | Solidity + Hardhat | ✅ 已完成 | 90% |
 | **移动端钱包** | `qfc-wallet-mobile` | React Native + Expo | ✅ 已完成 | 85% |
+| **OpenClaw 技能** | `qfc-openclaw-skill` | TypeScript + ethers.js | ✅ 已完成 | 80% |
 
 ---
 
@@ -91,7 +92,7 @@
   - [x] Gas 限制测试
   - [x] 合约地址测试
 
-**测试统计**: 8 测试文件, 174 测试用例全部通过
+**测试统计**: 9 测试文件, 181 测试用例全部通过 (含 7 个推理测试)
 
 #### qfc-wallet ✅ 已完成 (2026-02-02)
 - [x] 加密模块测试 (encrypt/decrypt, hashPassword, generatePassword)
@@ -182,7 +183,7 @@
 
 ---
 
-### 11. v2.0 AI 计算网络 🚧 进行中
+### 11. ~~v2.0 AI 计算网络~~ ✅ 已完成
 
 **目标**: 用真实 AI 推理任务替代 Blake3 PoW，使 PoC 评分中 20% 计算贡献维度产生经济价值
 
@@ -293,13 +294,32 @@
   - [x] Phase C: 大部分推理 (1 PoW + 4 inference + 2 矿工)
   - [x] Phase D: 全推理 (5 inference + 2 矿工)
 
-#### Phase 8: 生态集成 ⬜ 待开始
+#### Phase 8: 生态集成 ✅ 已完成 (2026-03-05)
 
-- [ ] OpenClaw 集成 (按 Design Doc 14)
-- [ ] 模型注册表链上治理 (验证者投票 >2/3)
-- [ ] 推理 API 对外开放 (付费调用)
-- [ ] Explorer 展示推理统计
-- [ ] SDK 更新 (JS/Python 支持推理相关 RPC)
+- [x] SDK 更新 (JS/Python 支持推理相关 RPC)
+  - [x] qfc-sdk-js: 8 个推理类型 + 7 个 Provider 方法 + 7 个测试
+  - [x] qfc-sdk-python: 6 个 Pydantic 模型 + 7 个 Provider 方法 + 11 个测试
+- [x] 模型注册表链上治理 (验证者投票 >2/3)
+  - [x] ModelGovernance 模块 (propose, vote, tally)
+  - [x] ProposalStatus (Active/Passed/Rejected/Expired)
+  - [x] 投票期可配置 (默认 1 天), 超级多数 >2/3
+  - [x] 3 个新 RPC 端点: proposeModel, voteModel, getModelProposals
+  - [x] 7 个治理单元测试
+- [x] 推理 API 对外开放 (付费调用)
+  - [x] PublicTask + PublicTaskStatus (Pending/Assigned/Completed/Failed/Expired)
+  - [x] TaskPool 扩展: submit_public_task, get_public_task, complete_public_task
+  - [x] 2 个新 RPC 端点: submitPublicTask, getPublicTaskStatus
+- [x] Explorer 展示推理统计增强
+  - [x] /inference 页面新增 Model Registry 表格
+  - [x] /governance/models 治理页面 (统计卡片 + 提案表格 + 已批准模型)
+  - [x] API 路由: /api/governance/models (15s ISR)
+- [x] OpenClaw 技能 MVP (新仓库 qfc-openclaw-skill)
+  - [x] QFCWallet 类 (创建/导入/余额/转账/签名)
+  - [x] SecurityPolicy 类 (5 条预交易安全规则)
+  - [x] SKILL.md 代理能力描述
+  - [x] 参考文档 (链概览 + 钱包操作指南)
+
+**Phase 8 统计**: 5 仓库更新, 31 文件新增/修改, SDK 测试 188 (JS) + 18 (Python), Core 50 测试通过
 
 ---
 
@@ -622,7 +642,7 @@
 ## 优先级排序建议
 
 ```
-v2.0 AI 计算网络 (当前重点):
+v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ Phase 1: 推理运行时 (qfc-inference, 3 后端)
 ├── ✅ Phase 2: 任务协调 (qfc-ai-coordinator)
 ├── ✅ Phase 3: 现有 crate 适配 (types/pow/consensus/node/rpc)
@@ -630,7 +650,7 @@ v2.0 AI 计算网络 (当前重点):
 ├── ✅ Phase 5: candle 模型集成 (BERT embedding, Metal)
 ├── ✅ Phase 6: 端到端集成 (提交→广播→验证→抽检→惩罚)
 ├── ✅ Phase 7: 测试网部署 (Docker + 混合模式 + 仪表板 + 分阶段脚本)
-└── ⬜ Phase 8: 生态集成 (OpenClaw, 治理, API)
+└── ✅ Phase 8: 生态集成 (SDK推理, 治理, 公开API, Explorer, OpenClaw)
 
 已完成基础设施:
 ├── ✅ 测试网部署 (Docker/K8s/Terraform/监控)
@@ -641,8 +661,9 @@ v2.0 AI 计算网络 (当前重点):
 ├── ✅ 移动端钱包 (React Native + Expo, 51 文件)
 ├── ✅ 区块浏览器 (Analytics, Export, Contracts)
 ├── ✅ 钱包 (i18n 4语言, 地址簿, 144 测试)
-├── ✅ SDK 测试 (JS 174 + Core 258 测试)
-└── ✅ QVM 完整栈 (编译器 + VM + 标准库 + JIT + LSP)
+├── ✅ SDK 测试 (JS 181 + Python 18 + Core 258 测试)
+├── ✅ QVM 完整栈 (编译器 + VM + 标准库 + JIT + LSP)
+└── ✅ OpenClaw 技能 (钱包管理 + 安全策略)
 
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
