@@ -1,12 +1,15 @@
 # QFC Blockchain - 待办事项与路线图
 
-> 最后更新: 2026-02-03
+> 最后更新: 2026-03-05
 
 ## 项目现状总览
 
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
+| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | 🚧 v2.0 开发中 | 60% |
+| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | 🚧 v2.0 开发中 | 50% |
+| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | 🚧 v2.0 开发中 | 40% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
@@ -176,6 +179,101 @@
   - [ ] Python SDK 文档 (待 SDK 开发)
 
 **完成时间**: 2026-02-02
+
+---
+
+### 11. v2.0 AI 计算网络 🚧 进行中
+
+**目标**: 用真实 AI 推理任务替代 Blake3 PoW，使 PoC 评分中 20% 计算贡献维度产生经济价值
+
+**设计文档**: `13-AI-COMPUTE-NETWORK.md`, `14-OPENCLAW-INTEGRATION.md`
+
+**分支**: `v2.0` (集成分支) ← `v2.0-inference-runtime` (已合并)
+
+#### Phase 1: 推理运行时 ✅ 已完成 (2026-03-05)
+
+新建 crate: `qfc-inference`
+
+- [x] `InferenceEngine` trait (异步, Send + Sync)
+  - [x] `run_inference()`, `load_model()`, `benchmark()`
+  - [x] `BackendType` enum (Cuda / Metal / Cpu)
+- [x] CPU 后端 (确定性占位实现, blake3 链式哈希)
+- [x] CUDA 后端 (脚手架, nvidia-smi 检测)
+- [x] Metal 后端 (脚手架, sysctl 检测 Apple Silicon)
+- [x] `InferenceProof` + `ComputeProof` 枚举 (v1 PoW + v2 AI)
+- [x] `ModelRegistry` (基准模型: small/medium/large)
+- [x] GPU 分级 (Hot 24GB+ / Warm 8-16GB / Cold CPU)
+- [x] 硬件检测 (CUDA 设备、Apple 芯片、内存)
+- [x] 31 个单元测试通过
+
+#### Phase 2: 任务协调 ✅ 已完成 (2026-03-05)
+
+新建 crate: `qfc-ai-coordinator`
+
+- [x] `TaskPool` (任务队列, 按 epoch 生成)
+- [x] `TaskRequirements` (最低 GPU 分级、内存、FLOPS)
+- [x] `MinerRegistry` (矿工注册、能力匹配、超时清理)
+- [x] 合成基准任务 (每个 GPU 分级一个)
+- [x] 基础验证 (`verify_basic` — epoch/模型/FLOPS 校验)
+- [x] 抽检验证 (`should_spot_check` — 5% 概率重执行)
+- [x] 完整抽检 (`verify_spot_check` — 重跑推理, 比对输出哈希)
+- [x] 22 个单元测试通过
+
+#### Phase 3: 现有 crate 适配 ✅ 已完成 (2026-03-05)
+
+- [x] `qfc-types` — 新增 `InferenceProof`, `ComputeProof`, `BackendType`, `ModelId`, `ComputeTaskType`; `ValidatorNode` 增加 v2 字段 (inference_score, gpu_memory_mb, 等)
+- [x] `qfc-pow` — 新增 `verify_inference_proof()`, `verify_compute_proof()`
+- [x] `qfc-consensus` — v2 评分: `inference_score = flops_norm * sqrt(tasks) * pass_rate²`; 无推理分时回退到 hashrate
+- [x] `qfc-node` — 双模式 `MiningService` (`PowV1` / `InferenceV2`)
+- [x] `qfc-rpc` — 3 个新端点: `getComputeInfo`, `getSupportedModels`, `getInferenceStats`
+
+#### Phase 4: 独立矿工程序 ✅ 已完成 (2026-03-05)
+
+新建 crate: `qfc-miner` (独立二进制)
+
+- [x] CLI (clap): `--validator-rpc`, `--wallet`, `--backend auto|cuda|metal|cpu`, `--model-dir`, `--max-memory`
+- [x] 硬件检测 + 基准测试
+- [x] `InferenceWorker` 推理循环 (10s epoch)
+- [x] 证明提交脚手架 (RPC)
+
+**统计**: 3 个新 crate, 5 个修改 crate, 3,372 行新代码, 134 个测试通过
+
+#### Phase 5: candle 模型集成 ⬜ 待开始
+
+- [ ] 集成 `candle-core` + `candle-nn` + `candle-transformers`
+- [ ] CPU 后端: 真实模型推理 (替换占位哈希)
+- [ ] CUDA 后端: `candle-core` CUDA feature
+- [ ] Metal 后端: `candle-core` Metal feature (Apple Silicon)
+- [ ] HuggingFace Hub 模型下载 (`hf-hub` crate)
+- [ ] 基准模型: `all-MiniLM-L6-v2` (Embedding), `bert-base` (Classification)
+- [ ] 确定性推理验证 (temperature=0, 固定 seed)
+
+#### Phase 6: 端到端集成 ⬜ 待开始
+
+- [ ] Worker → TaskCoordinator → ProofSubmission 完整流程
+- [ ] 矿工通过 RPC 获取任务 (`qfc_getInferenceTask`)
+- [ ] 矿工通过 RPC 提交证明 (`qfc_submitInferenceProof`)
+- [ ] 验证者节点自动抽检
+- [ ] 验证失败 → 扣分/slash 逻辑
+- [ ] 多矿工并发提交测试
+
+#### Phase 7: 测试网部署 ⬜ 待开始
+
+- [ ] Docker 镜像更新 (含 `qfc-miner`)
+- [ ] 测试网混合模式 (PoW + 推理矿工共存)
+- [ ] 矿工仪表板 (推理统计、GPU 利用率)
+- [ ] 过渡策略实施:
+  - [ ] v2.0-alpha: PoW 和推理证明均接受
+  - [ ] v2.0-beta: 推理证明权重 2x
+  - [ ] v2.0-stable: 仅接受推理证明
+
+#### Phase 8: 生态集成 ⬜ 待开始
+
+- [ ] OpenClaw 集成 (按 Design Doc 14)
+- [ ] 模型注册表链上治理 (验证者投票 >2/3)
+- [ ] 推理 API 对外开放 (付费调用)
+- [ ] Explorer 展示推理统计
+- [ ] SDK 更新 (JS/Python 支持推理相关 RPC)
 
 ---
 
@@ -498,29 +596,31 @@
 ## 优先级排序建议
 
 ```
-已完成:
-├── ✅ 测试网部署基础设施 (Docker/K8s/Terraform/监控)
+v2.0 AI 计算网络 (当前重点):
+├── ✅ Phase 1: 推理运行时 (qfc-inference, 3 后端)
+├── ✅ Phase 2: 任务协调 (qfc-ai-coordinator)
+├── ✅ Phase 3: 现有 crate 适配 (types/pow/consensus/node/rpc)
+├── ✅ Phase 4: 独立矿工程序 (qfc-miner)
+├── ⬜ Phase 5: candle 模型集成 (真实 AI 推理)
+├── ⬜ Phase 6: 端到端集成 (worker → coordinator → consensus)
+├── ⬜ Phase 7: 测试网部署 (混合模式过渡)
+└── ⬜ Phase 8: 生态集成 (OpenClaw, 治理, API)
+
+已完成基础设施:
+├── ✅ 测试网部署 (Docker/K8s/Terraform/监控)
 ├── ✅ 开发者文档站点 (VitePress, 17 页)
 ├── ✅ Python SDK (web3.py, 31 文件)
-├── ✅ CLI 工具增强 (commander.js, 18 文件)
-├── ✅ 智能合约示例库 (Hardhat, 11 合约)
+├── ✅ CLI 工具 (commander.js, 18 文件)
+├── ✅ 智能合约库 (Hardhat, 11 合约)
 ├── ✅ 移动端钱包 (React Native + Expo, 51 文件)
-├── ✅ 区块浏览器增强 (Analytics, Export, Contracts, Rate Limiting)
-└── ✅ 钱包多语言+地址簿 (i18n 4语言, Address Book)
+├── ✅ 区块浏览器 (Analytics, Export, Contracts)
+├── ✅ 钱包 (i18n 4语言, 地址簿, 144 测试)
+├── ✅ SDK 测试 (JS 174 + Core 258 测试)
+└── ✅ QVM 完整栈 (编译器 + VM + 标准库 + JIT + LSP)
 
-第 1 阶段 (当前):
-├── ✅ SDK 单元测试 (qfc-sdk-js, 174 测试)
-├── ✅ 钱包单元测试 (qfc-wallet, 144 测试)
-├── ✅ 核心引擎单元测试 (qfc-core, 258 测试)
-└── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
-
-已完成 QVM:
-├── ✅ 编译器前端 (qfc-qsc)
-├── ✅ 执行引擎 (qfc-qvm)
-├── ✅ 标准库 (stdlib)
-├── ✅ EVM 互操作 (interop)
-├── ✅ 开发工具 (VS Code + LSP + Formatter)
-└── ✅ JIT 编译 (Cranelift)
+待完善:
+├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
+└── CI/CD 流水线 (GitHub Actions 自动部署)
 ```
 
 ---
@@ -539,3 +639,5 @@
 - [区块链设计](./01-BLOCKCHAIN-DESIGN.md)
 - [共识机制](./02-CONSENSUS-MECHANISM.md)
 - [钱包设计](./07-WALLET-DESIGN.md)
+- [AI 计算网络设计](./13-AI-COMPUTE-NETWORK.md)
+- [OpenClaw 集成](./14-OPENCLAW-INTEGRATION.md)
