@@ -7,9 +7,9 @@
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
-| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ v2.0 核心完成 | 90% |
-| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ v2.0 核心完成 | 85% |
-| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ v2.0 核心完成 | 80% |
+| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ 链路已通 | 80% |
+| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ 验证+抽检已接入 | 75% |
+| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ proof 签名已实现 | 70% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 90% |
@@ -232,10 +232,11 @@
 
 新建 crate: `qfc-miner` (独立二进制)
 
-- [x] CLI (clap): `--validator-rpc`, `--wallet`, `--backend auto|cuda|metal|cpu`, `--model-dir`, `--max-memory`
+- [x] CLI (clap): `--validator-rpc`, `--wallet`, `--private-key`, `--backend auto|cuda|metal|cpu`, `--model-dir`, `--max-memory`
 - [x] 硬件检测 + 基准测试
 - [x] `InferenceWorker` 推理循环 (10s epoch)
 - [x] 证明提交脚手架 (RPC)
+- [x] Proof 签名 (`--private-key` → Keypair::sign_hash, 启动时验证与 --wallet 地址一致)
 
 **Phase 1-4 统计**: 3 个新 crate, 5 个修改 crate, 3,372 行新代码, 134 个测试通过
 
@@ -265,6 +266,9 @@
   - [x] 输出哈希不匹配 → `InvalidInference` 惩罚 (5% stake, 6h jail)
   - [x] 通过 → `update_inference_score()`
 - [x] CpuEngine 接入 SyncManager 用于抽检验证
+- [x] CpuEngine 接入 RpcServer 用于 RPC 抽检验证
+- [x] RPC `submit_inference_proof` 完整链路：签名验证 → verify_basic → 5% spot-check → slash/update_inference_score
+- [x] `tasks_completed` 累加 bug 修复 (saturating_add)
 - [x] 抽检集成测试 (test_verify_spot_check_pass, test_verify_spot_check_mismatch)
 - [ ] 多矿工并发提交测试
 - [ ] 矿工通过 RPC 获取任务 (`qfc_getInferenceTask`)
@@ -320,6 +324,52 @@
   - [x] 参考文档 (链概览 + 钱包操作指南)
 
 **Phase 8 统计**: 5 仓库更新, 31 文件新增/修改, SDK 测试 188 (JS) + 18 (Python), Core 50 测试通过
+
+---
+
+### 12. AI 推理链路：设计 vs 代码落地差距分析
+
+> 更新: 2026-03-05
+
+**设计文档** `13-AI-COMPUTE-NETWORK.md` 已覆盖完整推理链路。P0 链路已打通，P1/P2 仍有差距。
+
+#### 用户→推理 完整链路现状
+
+| 环节 | 设计文档 | 代码实现 | 差距说明 |
+|------|---------|---------|---------|
+| 用户发起请求 → 钱包签名 | ✅ 07-WALLET | ✅ 完成 | — |
+| 交易进链 → mempool → 打包 | ✅ 01-BLOCKCHAIN | ✅ 完成 | — |
+| AI Task Pool (任务注册/费用托管) | ✅ 13-AI §3 | ⚠️ 骨架 | 只有内存 TaskPool + 合成任务；缺链上合约、费用 escrow |
+| GPU 节点接收任务并执行 | ✅ 13-AI §4 | ⚠️ 骨架 | qfc-miner 有 worker 循环但推理靠占位 hash（无 candle 时）；缺三层模型调度 |
+| 推理结果验证 | ✅ 13-AI §5 | ✅ 已打通 | P2P + RPC 双通道均执行 verify_basic + 5% spot-check + slash |
+| 结果上链 / 返回用户 | ✅ 13-AI §3 状态机 | ✅ 已打通 | RPC 接受 proof → 签名验证 → 抽检 → update_inference_score |
+| 费用结算 (矿工报酬) | ✅ 13-AI §7 (70/10/20) | ❌ 未实现 | 无奖励分配、无 escrow 结算、无销毁 |
+
+#### 代码层面关键缺失 (按优先级)
+
+**P0 — 链路不通，必须修复：** ✅ 已全部完成 (2026-03-05)
+
+- [x] **Proof → 链状态更新**: `submit_inference_proof()` RPC 现在验证通过后调用 `update_inference_score()`
+- [x] **Proof 签名**: qfc-miner `--private-key` 参数签名 proof；RPC 端验证签名
+- [x] **Spot-check 实际执行**: RPC handler 注入 CPU InferenceEngine，5% 概率重跑推理验证
+- [x] **Slashing 触发**: 抽检输出哈希不匹配 → `slash_validator(5%, 6h jail)`
+- [x] **tasks_completed 累加 bug**: 修复 `saturating_add` (之前每次覆盖为 1)
+
+**P1 — 功能完整性：**
+
+- [ ] **Proof 上链**: 推理证明需打包进交易/区块，获得链上 finality
+- [ ] **费用结算**: 实现 70% 矿工 / 10% 验证节点 / 20% 销毁的分配逻辑
+- [ ] **任务来源**: 当前只有合成任务；需接通 `submitPublicTask` → 矿工执行 → 结果返回的完整环路
+- [ ] **CUDA 后端**: candle CUDA feature 待 GPU 环境测试
+
+**P2 — 生产就绪：**
+
+- [ ] **Challenge Tasks**: 13-AI §5.2 设计的挑战任务注入机制（已知答案验证）
+- [ ] **冗余验证**: 高价值任务发给 3 个矿工取多数一致
+- [ ] **三层模型调度**: 13-AI §4.5 设计的 Hot/Warm/Cold VRAM 分层
+- [ ] **Task Router**: 链下全局调度器，按矿工 GPU 能力 + 已加载模型匹配任务
+- [ ] **矿工注册上链**: GPU Benchmark 分数 + Tier 上链记录
+- [ ] **多矿工并发测试**
 
 ---
 
