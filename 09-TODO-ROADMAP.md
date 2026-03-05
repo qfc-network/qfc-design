@@ -7,9 +7,9 @@
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
-| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | 🚧 v2.0 开发中 | 60% |
-| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | 🚧 v2.0 开发中 | 50% |
-| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | 🚧 v2.0 开发中 | 40% |
+| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ v2.0 核心完成 | 90% |
+| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ v2.0 核心完成 | 85% |
+| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ v2.0 核心完成 | 80% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 85% |
@@ -236,26 +236,35 @@
 - [x] `InferenceWorker` 推理循环 (10s epoch)
 - [x] 证明提交脚手架 (RPC)
 
-**统计**: 3 个新 crate, 5 个修改 crate, 3,372 行新代码, 134 个测试通过
+**Phase 1-4 统计**: 3 个新 crate, 5 个修改 crate, 3,372 行新代码, 134 个测试通过
 
-#### Phase 5: candle 模型集成 ⬜ 待开始
+**Phase 5-6 统计**: candle ML 集成 + 端到端推理验证, 316 个测试通过 (截至 Phase 6)
 
-- [ ] 集成 `candle-core` + `candle-nn` + `candle-transformers`
-- [ ] CPU 后端: 真实模型推理 (替换占位哈希)
-- [ ] CUDA 后端: `candle-core` CUDA feature
-- [ ] Metal 后端: `candle-core` Metal feature (Apple Silicon)
-- [ ] HuggingFace Hub 模型下载 (`hf-hub` crate)
-- [ ] 基准模型: `all-MiniLM-L6-v2` (Embedding), `bert-base` (Classification)
-- [ ] 确定性推理验证 (temperature=0, 固定 seed)
+#### Phase 5: candle 模型集成 ✅ 已完成 (2026-03-04)
 
-#### Phase 6: 端到端集成 ⬜ 待开始
+- [x] 集成 `candle-core` + `candle-nn` + `candle-transformers`
+- [x] CPU 后端: 真实 BERT embedding 推理 (candle feature flag)
+- [x] Metal 后端: `candle-core` Metal feature (Apple Silicon)
+- [x] 模型下载与缓存 (`ModelCache`, `download_model()`)
+- [x] 基准模型: BERT embedding (all-MiniLM-L6-v2 式)
+- [x] 确定性推理验证 (blake3 输出哈希, 固定 seed)
+- [ ] CUDA 后端: `candle-core` CUDA feature (待 GPU 测试环境)
 
-- [ ] Worker → TaskCoordinator → ProofSubmission 完整流程
-- [ ] 矿工通过 RPC 获取任务 (`qfc_getInferenceTask`)
-- [ ] 矿工通过 RPC 提交证明 (`qfc_submitInferenceProof`)
-- [ ] 验证者节点自动抽检
-- [ ] 验证失败 → 扣分/slash 逻辑
+#### Phase 6: 端到端集成 ✅ 已完成 (2026-03-05)
+
+- [x] Worker → TaskCoordinator → ProofSubmission 完整流程
+- [x] `qfc-miner` crate: InferenceMiner 推理循环 + RPC 提交
+- [x] 矿工通过 RPC 提交证明 (`qfc_submitInferenceProof`)
+- [x] 推理证明签名 + P2P 广播 (ValidatorMessage::InferenceProof)
+- [x] 验证者节点 `handle_inference_proof()`:
+  - [x] 签名验证 + epoch/模型/FLOPS 基础校验
+  - [x] 5% 概率抽检重执行 (`should_spot_check` + `verify_spot_check`)
+  - [x] 输出哈希不匹配 → `InvalidInference` 惩罚 (5% stake, 6h jail)
+  - [x] 通过 → `update_inference_score()`
+- [x] CpuEngine 接入 SyncManager 用于抽检验证
+- [x] 抽检集成测试 (test_verify_spot_check_pass, test_verify_spot_check_mismatch)
 - [ ] 多矿工并发提交测试
+- [ ] 矿工通过 RPC 获取任务 (`qfc_getInferenceTask`)
 
 #### Phase 7: 测试网部署 ⬜ 待开始
 
@@ -601,8 +610,8 @@ v2.0 AI 计算网络 (当前重点):
 ├── ✅ Phase 2: 任务协调 (qfc-ai-coordinator)
 ├── ✅ Phase 3: 现有 crate 适配 (types/pow/consensus/node/rpc)
 ├── ✅ Phase 4: 独立矿工程序 (qfc-miner)
-├── ⬜ Phase 5: candle 模型集成 (真实 AI 推理)
-├── ⬜ Phase 6: 端到端集成 (worker → coordinator → consensus)
+├── ✅ Phase 5: candle 模型集成 (BERT embedding, Metal)
+├── ✅ Phase 6: 端到端集成 (提交→广播→验证→抽检→惩罚)
 ├── ⬜ Phase 7: 测试网部署 (混合模式过渡)
 └── ⬜ Phase 8: 生态集成 (OpenClaw, 治理, API)
 
