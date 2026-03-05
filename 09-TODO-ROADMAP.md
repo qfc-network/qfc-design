@@ -7,9 +7,9 @@
 | 项目 | 仓库 | 技术栈 | 状态 | 完成度 |
 |------|------|--------|------|--------|
 | 核心引擎 | `qfc-core` | Rust + libp2p | ✅ 生产就绪 | 95% |
-| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ 链路已通 | 80% |
-| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ 验证+抽检已接入 | 75% |
-| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ proof 签名已实现 | 70% |
+| AI 推理引擎 | `qfc-core/qfc-inference` | Rust + candle | ✅ 链路已通 | 85% |
+| AI 任务协调 | `qfc-core/qfc-ai-coordinator` | Rust | ✅ 证明上链+费用结算 | 85% |
+| 独立矿工 | `qfc-core/qfc-miner` | Rust + clap | ✅ proof 签名+CUDA | 80% |
 | 浏览器钱包 | `qfc-wallet` | React + TypeScript | ✅ 功能完整 | 95% |
 | 区块浏览器 | `qfc-explorer` | Next.js + PostgreSQL | ✅ 功能完整 | 95% |
 | JavaScript SDK | `qfc-sdk-js` | TypeScript + ethers.js | ✅ 已完成 | 90% |
@@ -252,7 +252,7 @@
 - [x] 模型下载与缓存 (`ModelCache`, `download_model()`)
 - [x] 基准模型: BERT embedding (all-MiniLM-L6-v2 式)
 - [x] 确定性推理验证 (blake3 输出哈希, 固定 seed)
-- [ ] CUDA 后端: `candle-core` CUDA feature (待 GPU 测试环境)
+- [x] CUDA 后端: `Dockerfile.cuda` + `Dockerfile.miner-cuda` (nvidia/cuda:12.2.0, `--features candle,cuda`)
 
 #### Phase 6: 端到端集成 ✅ 已完成 (2026-03-05)
 
@@ -355,12 +355,12 @@
 - [x] **Slashing 触发**: 抽检输出哈希不匹配 → `slash_validator(5%, 6h jail)`
 - [x] **tasks_completed 累加 bug**: 修复 `saturating_add` (之前每次覆盖为 1)
 
-**P1 — 功能完整性：**
+**P1 — 功能完整性：** ✅ 已全部完成 (2026-03-05)
 
-- [ ] **Proof 上链**: 推理证明需打包进交易/区块，获得链上 finality
-- [ ] **费用结算**: 实现 70% 矿工 / 10% 验证节点 / 20% 销毁的分配逻辑
-- [ ] **任务来源**: 当前只有合成任务；需接通 `submitPublicTask` → 矿工执行 → 结果返回的完整环路
-- [ ] **CUDA 后端**: candle CUDA feature 待 GPU 环境测试
+- [x] **Proof 上链**: `proofs_root` Merkle root 写入 BlockHeader, `inference_proofs` 打包进 Block/BlockBody, ProofPool 缓冲池 (max 2000), 每块最多 500 条证明
+- [x] **费用结算**: 70% 矿工 / 10% 验证节点 / 20% 销毁; BlockProducer 在出块时自动匹配公共任务并结算; 过期任务自动退款
+- [x] **公共任务流**: `submitPublicTask` 解析提交者地址 + Ed25519 签名验证 + 余额 escrow; `submit_inference_proof` 自动匹配完成任务; `getPublicTaskStatus` 查询结果
+- [x] **CUDA 后端**: `Dockerfile.cuda` (节点) + `Dockerfile.miner-cuda` (矿工), nvidia/cuda:12.2.0 基础镜像, `--features candle,cuda`
 
 **P2 — 生产就绪：**
 
@@ -697,10 +697,11 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ Phase 2: 任务协调 (qfc-ai-coordinator)
 ├── ✅ Phase 3: 现有 crate 适配 (types/pow/consensus/node/rpc)
 ├── ✅ Phase 4: 独立矿工程序 (qfc-miner)
-├── ✅ Phase 5: candle 模型集成 (BERT embedding, Metal)
+├── ✅ Phase 5: candle 模型集成 (BERT embedding, Metal, CUDA Docker)
 ├── ✅ Phase 6: 端到端集成 (提交→广播→验证→抽检→惩罚)
 ├── ✅ Phase 7: 测试网部署 (Docker + 混合模式 + 仪表板 + 分阶段脚本)
-└── ✅ Phase 8: 生态集成 (SDK推理, 治理, 公开API, Explorer, OpenClaw)
+├── ✅ Phase 8: 生态集成 (SDK推理, 治理, 公开API, Explorer, OpenClaw)
+└── ✅ P1 功能完整性 (证明上链, 费用结算70/10/20, 公共任务流, CUDA镜像)
 
 已完成基础设施:
 ├── ✅ 测试网部署 (Docker/K8s/Terraform/监控)
