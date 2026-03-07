@@ -340,7 +340,7 @@
 | 1 | 用户发起推理请求 | ✅ | ✅ | 98% | 钱包/Explorer 已集成推理 UI；专用 TX 类型已添加 |
 | 2 | 交易路由到 AI-VM | ✅ | ✅ | 95% | Fee escrow 已实现；任务路由+优先级+超时重分配完成 |
 | 3 | GPU 节点执行推理 | ✅ | ✅ | 98% | ModelCache LRU 驱逐+自动下载完成；GPU 指标采集完成 |
-| 4 | 推理结果验证 | ✅ | ✅ | 98% | 多验证者仲裁面板+多数投票已实现；Proof 上链流程完成 |
+| 4 | 推理结果验证 | ✅ | ✅ | 100% | 多验证者仲裁面板+多数投票+Proof 上链 Merkle 验证全部完成 |
 | 5 | 结果返回用户 | ✅ | ✅ | 90% | base64 编码+WebSocket 订阅+SDK 完成；大结果 IPFS 未集成 |
 | 6 | 费用结算 | ✅ | ✅ | 95% | Escrow+70/10/20 分配+定价公式+slashing 全部完成 |
 
@@ -380,7 +380,7 @@
 - [ ] **GPU 实时监控**: 温度、功率、利用率指标
 - [ ] **任务并行执行**: 多任务并发处理
 
-#### 环节 4: 推理结果验证 (95%)
+#### 环节 4: 推理结果验证 (100%) ✅
 
 **已实现:**
 - [x] `InferenceProof` 结构: validator, epoch, input_hash, output_hash (blake3), flops, signature
@@ -388,10 +388,8 @@
 - [x] 5% 概率抽查: hash 决定 → 重新执行推理 → 比对 output_hash
 - [x] `handle_inference_proof()` 完整流程 (`qfc-node/src/sync.rs`)
 - [x] RPC `submitInferenceProof` 端点
-
-**待完成:**
-- [ ] **Challenge 仲裁**: 设计有 `challenge_result()` 接口，代码未实现多验证者仲裁
-- [ ] **Proof 上链确认**: `proofs_root` Merkle root 写入 BlockHeader 的端到端验证
+- [x] **Challenge 仲裁**: `ArbitrationPanel` 多验证者投票 + 多数决裁定 (`qfc-ai-coordinator/src/challenge.rs`)
+- [x] **Proof 上链确认**: `proofs_root` Merkle root 写入 BlockHeader，出块+验证双向校验 (`qfc-consensus/src/engine.rs`)
 
 #### 环节 5: 结果返回用户 (90%) ✅
 
