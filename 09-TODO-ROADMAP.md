@@ -339,7 +339,7 @@
 |---|------|------|------|--------|---------|
 | 1 | 用户发起推理请求 | ✅ | ✅ | 98% | 钱包/Explorer 已集成推理 UI；专用 TX 类型已添加 |
 | 2 | 交易路由到 AI-VM | ✅ | ✅ | 95% | Fee escrow 已实现；任务路由+优先级+超时重分配完成 |
-| 3 | GPU 节点执行推理 | ✅ | ✅ | 98% | ModelCache LRU 驱逐+自动下载完成；GPU 指标采集完成 |
+| 3 | GPU 节点执行推理 | ✅ | ✅ | 98% | ModelCache LRU+自动下载+GPU 指标采集完成；任务并行待实现 |
 | 4 | 推理结果验证 | ✅ | ✅ | 100% | 多验证者仲裁面板+多数投票+Proof 上链 Merkle 验证全部完成 |
 | 5 | 结果返回用户 | ✅ | ✅ | 90% | base64 编码+WebSocket 订阅+SDK 完成；大结果 IPFS 未集成 |
 | 6 | 费用结算 | ✅ | ✅ | 95% | Escrow+70/10/20 分配+定价公式+slashing 全部完成 |
@@ -375,10 +375,12 @@
 - [x] RPC `getInferenceTask` 矿工拉取任务
 - [x] GPU tier 分类 + benchmark 评分 + 矿工注册
 
+**已实现 (Phase E):**
+- [x] **模型下载与缓存管理**: `ModelCache` LRU 驱逐 + `ensure_model()` 自动下载 (`qfc-inference/src/model.rs`)
+- [x] **GPU 实时监控**: `GpuMetrics` 温度/功率/利用率采集，支持 NVIDIA/Metal/CPU (`qfc-inference/src/gpu_monitor.rs`)
+
 **待完成:**
-- [ ] **模型下载与缓存管理**: `ModelCache` 框架在但未完整实现
-- [ ] **GPU 实时监控**: 温度、功率、利用率指标
-- [ ] **任务并行执行**: 多任务并发处理
+- [ ] **任务并行执行**: 多任务并发处理 (当前 worker 串行循环)
 
 #### 环节 4: 推理结果验证 (100%) ✅
 
