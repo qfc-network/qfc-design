@@ -365,7 +365,7 @@
 
 **待完成:**
 - [ ] **RPC → TaskPool 完整流转**: `submitPublicTask` 如何经 mempool 到 TaskPool 的明确路径
-- [ ] **Fee escrow 实现**: 设计文档有 (13-AI §3)，代码中无 escrow 账户管理
+- [x] **Fee escrow 实现**: `submitPublicTask` RPC 中 `sub_balance()` 锁定 fee (Phase A 完成)
 - [ ] **任务超时重分配**: 超时后自动分配给其他矿工
 
 #### 环节 3: GPU 节点执行推理 (95%)
@@ -407,20 +407,21 @@
 - [ ] **超时通知**: 任务超时后用户如何得知
 - [ ] **用户 SDK 查询**: qfc-sdk-js / qfc-openclaw-skill 添加结果查询 API
 
-#### 环节 6: 费用结算 (50%) ⚠️⚠️
+#### 环节 6: 费用结算 (95%) ✅
 
 **已实现:**
 - [x] `calculate_inference_score()` — `sqrt(tasks) * (flops/1e9) * pass_rate` (`qfc-consensus/src/scoring.rs`)
 - [x] PoC v2 评分集成 — inference_score 占计算维度 20% 权重
 - [x] 矿工注册 RPC `registerMiner()` + GPU 声明验证
 - [x] `ValidatorNode` 包含 `inference_score` / `tasks_completed` 字段
+- [x] **Escrow**: `submitPublicTask` RPC 扣除 `max_fee` (`qfc-rpc/src/server.rs:1672-1687`)
+- [x] **分润 70/10/20**: `settle_inference_fees()` 完整实现 (`qfc-node/src/producer.rs:309-375`)
+- [x] **超时退款**: `prune_expired_public()` + `add_balance` 退还 escrow
+- [x] **Slashing**: `slash_validator()` 扣 5% stake + 6h jail (`qfc-node/src/sync.rs:1003`)
+- [x] **Fee 定价模型**: `estimate_base_fee()` 按 GFLOPS + GPU tier 估价 (`qfc-ai-coordinator/src/task_types.rs`)
+- [x] **结算 input_hash 索引**: 修复 proof→task 匹配 bug (之前用 task_id 查找，永远不匹配)
 
-**待完成 (关键阻塞):**
-- [ ] **QFC 转账代码**: 验证通过后 → 将 fee 从 escrow 转给矿工 (完全缺失)
-- [ ] **Escrow 账户管理**: 用户提交任务时锁定 fee、完成后释放、超时退还
-- [ ] **Slashing 执行**: 检测到作弊但没有实际扣除 stake 的代码
-- [ ] **Fee 计算公式**: 设计有 `max_fee` 但实际费用如何计算 (按 FLOPS? 按时间? 按 gas?)
-- [ ] **分润比例落地**: 设计是 70% 矿工 / 10% 验证节点 / 20% 销毁，代码未实现
+**待完成:**
 - [ ] **区块奖励中的推理贡献**: scoring 有但奖励分配逻辑缺失
 
 ---
@@ -429,15 +430,15 @@
 
 > 目标: 逐项补齐上述 6 个环节的空白，使推理链路端到端可用
 
-#### Phase A: 费用结算核心 (最高优先级)
+#### Phase A: 费用结算核心 ✅ 完成
 
 > 环节 6 是整个链路的经济基础，不结算 = 无激励 = 无矿工
 
-- [ ] A1: Escrow 模块 — 任务提交时锁定 fee 到 escrow 账户
-- [ ] A2: 结算执行 — proof 验证通过后，70% fee → 矿工, 10% → 验证节点, 20% burn
-- [ ] A3: 超时退款 — 任务超时自动退还 escrow 到用户
-- [ ] A4: Slashing 执行 — 抽检失败时实际扣除 5% stake + 6h jail
-- [ ] A5: Fee 定价模型 — 按 GPU tier + 模型大小 + FLOPS 估算基准价格
+- [x] A1: Escrow 模块 — `submitPublicTask` RPC 中 `sub_balance()` 锁定 fee
+- [x] A2: 结算执行 — `settle_inference_fees()` 70/10/20 分润 + **修复 input_hash 索引 bug**
+- [x] A3: 超时退款 — `prune_expired_public()` 自动退还 escrow
+- [x] A4: Slashing 执行 — `slash_validator()` 5% stake + 6h jail (sync.rs)
+- [x] A5: Fee 定价模型 — `estimate_base_fee()` 按 GFLOPS×GPU tier 估算，RPC 校验 min fee
 
 #### Phase B: 结果返回完善
 
