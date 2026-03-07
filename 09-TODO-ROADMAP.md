@@ -352,9 +352,10 @@
 - [x] 支持 4 种任务类型: TextGeneration / ImageClassification / Embedding / OnnxInference
 
 **待完成:**
-- [ ] **专用交易类型**: 增加 `TransactionType::InferenceTask` (当前复用 ContractCall)
-- [ ] **钱包 SDK 集成**: qfc-sdk-js / qfc-wallet 添加推理任务提交 API
-- [ ] **OpenClaw 推理技能**: qfc-openclaw-skill 添加推理查询功能
+- [x] **专用交易类型**: `TransactionType::InferenceTask = 10` 已定义 (`qfc-types/src/transaction.rs`)，executor 已有处理分支
+- [x] **钱包 SDK 集成 (查询)**: qfc-sdk-js Provider 已有 7 个推理方法 + 8 个类型 (Phase 8)
+- [ ] **钱包推理 UI**: qfc-wallet 添加推理任务提交界面 (未开始)
+- [x] **OpenClaw 推理技能**: `QFCInference` 类已完成 — submitTask/getTaskStatus/waitForResult/getModels/getStats/estimateFee/decodeResult (v3.0.2 修复 payload 对齐)
 
 #### 环节 2: 交易路由到 AI-VM (95%) ✅
 
