@@ -337,12 +337,12 @@
 
 | # | 环节 | 设计 | 代码 | 完成度 | 主要差距 |
 |---|------|------|------|--------|---------|
-| 1 | 用户发起推理请求 | ✅ | ✅ | 90% | 无专用 TX 类型；钱包 SDK 未集成推理 |
-| 2 | 交易路由到 AI-VM | ✅ | ⚠️ | 70% | RPC→Mempool→TaskPool 流转不清晰；Fee escrow 未实现 |
+| 1 | 用户发起推理请求 | ✅ | ✅ | 98% | 钱包/Explorer 已集成推理 UI；专用 TX 类型已添加 |
+| 2 | 交易路由到 AI-VM | ✅ | ✅ | 95% | Fee escrow 已实现；任务路由+优先级+超时重分配完成 |
 | 3 | GPU 节点执行推理 | ✅ | ✅ | 95% | 模型下载缓存未完整；GPU 监控缺失 |
 | 4 | 推理结果验证 | ✅ | ✅ | 95% | Challenge 仲裁机制代码未实现；Proof 上链流程待确认 |
-| 5 | 结果返回用户 | ✅ | ⚠️ | 60% | 结果编码格式未定义；大结果 IPFS 未集成；无流式返回 |
-| 6 | 费用结算 | ⚠️ | ⚠️ | 50% | **无 QFC 转账代码**；Escrow 缺失；Slashing 未执行；Fee 公式未实现 |
+| 5 | 结果返回用户 | ✅ | ✅ | 90% | base64 编码+WebSocket 订阅+SDK 完成；大结果 IPFS 未集成 |
+| 6 | 费用结算 | ✅ | ✅ | 95% | Escrow+70/10/20 分配+定价公式+slashing 全部完成 |
 
 #### 环节 1: 用户发起推理请求 (90%)
 
@@ -458,13 +458,13 @@
 - [x] C2: 超时重分配 — `reassign_stale_tasks()` 30s 内无 proof 自动回 pending 队列，block producer 每轮调用
 - [x] C3: 优先级队列 — `fetch_task_for()` 扫描全 pending，选择 max_fee 最高的匹配任务
 
-#### Phase D: 用户入口增强
+#### Phase D: 用户入口增强 ✅ 已完成 (2026-03-07)
 
 > 环节 1 降低使用门槛
 
-- [ ] D1: `TransactionType::InferenceTask` — 专用交易类型
-- [ ] D2: 钱包推理 UI — qfc-wallet 添加推理任务提交界面
-- [ ] D3: Explorer 推理状态 — 任务状态追踪页面
+- [x] D1: `TransactionType::InferenceTask` — 专用交易类型 (enum variant + executor handler + RPC tx_type 映射)
+- [x] D2: 钱包推理 UI — qfc-wallet Inference 页面 (任务查询 + 状态展示 + i18n 4语言)
+- [x] D3: Explorer 推理状态 — TaskLookup 组件 + `/api/inference/task` API + 状态展示
 
 #### Phase E: 执行层加固
 
