@@ -394,18 +394,19 @@
 - [ ] **Challenge 仲裁**: 设计有 `challenge_result()` 接口，代码未实现多验证者仲裁
 - [ ] **Proof 上链确认**: `proofs_root` Merkle root 写入 BlockHeader 的端到端验证
 
-#### 环节 5: 结果返回用户 (60%) ⚠️
+#### 环节 5: 结果返回用户 (90%) ✅
 
 **已实现:**
 - [x] RPC `getPublicTaskStatus(task_id)` 查询端点
 - [x] `PublicTaskStatus::Completed { result_data, miner, execution_time_ms }`
+- [x] **结果编码格式**: JSON envelope + base64 payload (B1)
+- [x] **WebSocket 订阅**: `qfc_subscribeTaskStatus` 推送状态变更 (B3)
+- [x] **超时通知**: Expired 状态通过 RPC 和 WS 推送返回
+- [x] **SDK 集成**: qfc-sdk-js `getPublicTaskStatus()` + `waitForInferenceResult()` (B4)
+- [x] **OpenClaw 推理技能**: `QFCInference` 类 — 查询/等待/解码结果 (B5)
 
 **待完成:**
-- [ ] **结果编码格式**: tensor bytes 如何序列化给用户 (JSON? protobuf? base64?)
-- [ ] **大结果处理**: 设计提到 IPFS/Arweave 存储，代码未集成
-- [ ] **流式返回**: 只有轮询，无 WebSocket/SSE 推送
-- [ ] **超时通知**: 任务超时后用户如何得知
-- [ ] **用户 SDK 查询**: qfc-sdk-js / qfc-openclaw-skill 添加结果查询 API
+- [ ] **大结果处理**: 设计提到 IPFS/Arweave 存储，代码未集成 (>1MB 结果)
 
 #### 环节 6: 费用结算 (95%) ✅
 
@@ -440,15 +441,15 @@
 - [x] A4: Slashing 执行 — `slash_validator()` 5% stake + 6h jail (sync.rs)
 - [x] A5: Fee 定价模型 — `estimate_base_fee()` 按 GFLOPS×GPU tier 估算，RPC 校验 min fee
 
-#### Phase B: 结果返回完善
+#### Phase B: 结果返回完善 ✅ 完成
 
 > 环节 5 是用户体验的最后一公里
 
-- [ ] B1: 结果编码规范 — 定义标准输出格式 (JSON envelope + base64 payload)
-- [ ] B2: 大结果存储 — 超过 1MB 的结果上传 IPFS，链上存 CID
-- [ ] B3: 结果推送 — WebSocket/SSE 通知任务完成
-- [ ] B4: SDK 集成 — qfc-sdk-js 添加 `submitInference()` / `getInferenceResult()`
-- [ ] B5: OpenClaw 推理技能 — 自然语言发起推理 + 查询结果
+- [x] B1: 结果编码规范 — JSON envelope + base64 payload + submitter/model/timestamps 元信息
+- [ ] B2: 大结果存储 — 超过 1MB 的结果上传 IPFS，链上存 CID (deferred)
+- [x] B3: 结果推送 — `qfc_subscribeTaskStatus` WebSocket 订阅，自动推送状态变更至终态
+- [x] B4: SDK 集成 — `getPublicTaskStatus()` 结构化返回 + `waitForInferenceResult()` 轮询
+- [x] B5: OpenClaw 推理技能 — `QFCInference` 类: getModels/getStats/getTaskStatus/waitForResult/decode
 
 #### Phase C: 任务路由加固
 
