@@ -339,8 +339,8 @@
 |---|------|------|------|--------|---------|
 | 1 | 用户发起推理请求 | ✅ | ✅ | 98% | 钱包/Explorer 已集成推理 UI；专用 TX 类型已添加 |
 | 2 | 交易路由到 AI-VM | ✅ | ✅ | 95% | Fee escrow 已实现；任务路由+优先级+超时重分配完成 |
-| 3 | GPU 节点执行推理 | ✅ | ✅ | 95% | 模型下载缓存未完整；GPU 监控缺失 |
-| 4 | 推理结果验证 | ✅ | ✅ | 95% | Challenge 仲裁机制代码未实现；Proof 上链流程待确认 |
+| 3 | GPU 节点执行推理 | ✅ | ✅ | 98% | ModelCache LRU 驱逐+自动下载完成；GPU 指标采集完成 |
+| 4 | 推理结果验证 | ✅ | ✅ | 98% | 多验证者仲裁面板+多数投票已实现；Proof 上链流程完成 |
 | 5 | 结果返回用户 | ✅ | ✅ | 90% | base64 编码+WebSocket 订阅+SDK 完成；大结果 IPFS 未集成 |
 | 6 | 费用结算 | ✅ | ✅ | 95% | Escrow+70/10/20 分配+定价公式+slashing 全部完成 |
 
@@ -466,13 +466,13 @@
 - [x] D2: 钱包推理 UI — qfc-wallet Inference 页面 (任务查询 + 状态展示 + i18n 4语言)
 - [x] D3: Explorer 推理状态 — TaskLookup 组件 + `/api/inference/task` API + 状态展示
 
-#### Phase E: 执行层加固
+#### Phase E: 执行层加固 ✅ 已完成 (2026-03-07)
 
 > 环节 3、4 的生产化
 
-- [ ] E1: 模型下载管理器 — 完善 ModelCache 自动下载 + LRU 驱逐
-- [ ] E2: GPU 监控指标 — 温度/功率/利用率 → Prometheus metrics
-- [ ] E3: Challenge 仲裁 — 多验证者重新执行 + 多数投票
+- [x] E1: 模型下载管理器 — ModelCache LRU 驱逐 (`evict_lru()`) + `ensure_model()` 自动下载 + `with_max_size()` 容量限制
+- [x] E2: GPU 监控指标 — `GpuMetrics` struct (温度/功率/利用率/显存)，nvidia-smi 采集 (CUDA)，系统内存采集 (Metal/CPU)
+- [x] E3: Challenge 仲裁 — `ArbitrationPanel` 多验证者投票 + `ArbitrationManager` 争议管理 + spot-check 失败自动开启仲裁 + 多数投票 slash
 
 ---
 
