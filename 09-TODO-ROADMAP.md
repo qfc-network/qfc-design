@@ -1,6 +1,6 @@
 # QFC Blockchain - 待办事项与路线图
 
-> 最后更新: 2026-03-05
+> 最后更新: 2026-03-07
 
 ## 项目现状总览
 
@@ -329,47 +329,181 @@
 
 ### 12. AI 推理链路：设计 vs 代码落地差距分析
 
-> 更新: 2026-03-05
+> 更新: 2026-03-07
 
-**设计文档** `13-AI-COMPUTE-NETWORK.md` 已覆盖完整推理链路。P0/P1/P2 全部完成，链路已全通。
+**设计文档** `13-AI-COMPUTE-NETWORK.md` 已覆盖完整推理链路。核心执行层（任务分发、推理执行、结果验证）已实现，但**用户入口层**和**经济结算层**仍有落地差距。
 
-#### 用户→推理 完整链路现状
+#### 完整链路 6 个环节现状
 
-| 环节 | 设计文档 | 代码实现 | 说明 |
-|------|---------|---------|------|
-| 用户发起请求 → 钱包签名 | ✅ 07-WALLET | ✅ 完成 | — |
-| 交易进链 → mempool → 打包 | ✅ 01-BLOCKCHAIN | ✅ 完成 | — |
-| AI Task Pool (任务注册/费用托管) | ✅ 13-AI §3 | ✅ 完成 | P1: submitPublicTask + Ed25519 签名 + 余额 escrow; P2: 冗余任务分配 |
-| GPU 节点接收任务并执行 | ✅ 13-AI §4 | ✅ 完成 | P2: 矿工注册上链 (GPU tier) + 三层模型调度 (Hot/Warm/Cold) + TaskRouter 智能分配 |
-| 推理结果验证 | ✅ 13-AI §5 | ✅ 完成 | 5% spot-check + Challenge 挑战任务 (自适应注入) + 冗余验证 (3 矿工多数一致) |
-| 结果上链 / 返回用户 | ✅ 13-AI §3 状态机 | ✅ 完成 | proofs_root Merkle root 写入 BlockHeader, 每块最多 500 条证明 |
-| 费用结算 (矿工报酬) | ✅ 13-AI §7 (70/10/20) | ✅ 完成 | 70% 矿工 / 10% 验证节点 / 20% 销毁; 出块时自动结算; 过期退款 |
+| # | 环节 | 设计 | 代码 | 完成度 | 主要差距 |
+|---|------|------|------|--------|---------|
+| 1 | 用户发起推理请求 | ✅ | ✅ | 90% | 无专用 TX 类型；钱包 SDK 未集成推理 |
+| 2 | 交易路由到 AI-VM | ✅ | ⚠️ | 70% | RPC→Mempool→TaskPool 流转不清晰；Fee escrow 未实现 |
+| 3 | GPU 节点执行推理 | ✅ | ✅ | 95% | 模型下载缓存未完整；GPU 监控缺失 |
+| 4 | 推理结果验证 | ✅ | ✅ | 95% | Challenge 仲裁机制代码未实现；Proof 上链流程待确认 |
+| 5 | 结果返回用户 | ✅ | ⚠️ | 60% | 结果编码格式未定义；大结果 IPFS 未集成；无流式返回 |
+| 6 | 费用结算 | ⚠️ | ⚠️ | 50% | **无 QFC 转账代码**；Escrow 缺失；Slashing 未执行；Fee 公式未实现 |
 
-#### 代码层面关键缺失 (按优先级)
+#### 环节 1: 用户发起推理请求 (90%)
 
-**P0 — 链路不通，必须修复：** ✅ 已全部完成 (2026-03-05)
+**已实现:**
+- [x] RPC `submitPublicTask` 端点 + Ed25519 签名验证 (`qfc-rpc/src/qfc.rs`)
+- [x] `PublicTask` + `PublicTaskStatus` 状态机 (`qfc-ai-coordinator/src/task_pool.rs`)
+- [x] 支持 4 种任务类型: TextGeneration / ImageClassification / Embedding / OnnxInference
 
-- [x] **Proof → 链状态更新**: `submit_inference_proof()` RPC 现在验证通过后调用 `update_inference_score()`
+**待完成:**
+- [ ] **专用交易类型**: 增加 `TransactionType::InferenceTask` (当前复用 ContractCall)
+- [ ] **钱包 SDK 集成**: qfc-sdk-js / qfc-wallet 添加推理任务提交 API
+- [ ] **OpenClaw 推理技能**: qfc-openclaw-skill 添加推理查询功能
+
+#### 环节 2: 交易路由到 AI-VM (70%)
+
+**已实现:**
+- [x] `TaskPool` — 任务提交、合成任务生成 (每 epoch 3 个)、按能力匹配矿工
+- [x] `TaskRouter` — Hot/Warm/Cold 三层调度、负载均衡、5 分钟超时清理
+- [x] `TaskRequirements` — GPU tier / VRAM / FLOPS 匹配
+
+**待完成:**
+- [ ] **RPC → TaskPool 完整流转**: `submitPublicTask` 如何经 mempool 到 TaskPool 的明确路径
+- [ ] **Fee escrow 实现**: 设计文档有 (13-AI §3)，代码中无 escrow 账户管理
+- [ ] **任务超时重分配**: 超时后自动分配给其他矿工
+
+#### 环节 3: GPU 节点执行推理 (95%)
+
+**已实现:**
+- [x] `InferenceMiner` 完整工作循环: fetch → run → submit proof (`qfc-miner/src/worker.rs`)
+- [x] 多后端引擎: CPU (candle/BERT) / CUDA / Metal (`qfc-inference/src/backend/`)
+- [x] RPC `getInferenceTask` 矿工拉取任务
+- [x] GPU tier 分类 + benchmark 评分 + 矿工注册
+
+**待完成:**
+- [ ] **模型下载与缓存管理**: `ModelCache` 框架在但未完整实现
+- [ ] **GPU 实时监控**: 温度、功率、利用率指标
+- [ ] **任务并行执行**: 多任务并发处理
+
+#### 环节 4: 推理结果验证 (95%)
+
+**已实现:**
+- [x] `InferenceProof` 结构: validator, epoch, input_hash, output_hash (blake3), flops, signature
+- [x] 基础验证: epoch 匹配、模型审批、FLOPS 合理性 (`qfc-ai-coordinator/src/verification.rs`)
+- [x] 5% 概率抽查: hash 决定 → 重新执行推理 → 比对 output_hash
+- [x] `handle_inference_proof()` 完整流程 (`qfc-node/src/sync.rs`)
+- [x] RPC `submitInferenceProof` 端点
+
+**待完成:**
+- [ ] **Challenge 仲裁**: 设计有 `challenge_result()` 接口，代码未实现多验证者仲裁
+- [ ] **Proof 上链确认**: `proofs_root` Merkle root 写入 BlockHeader 的端到端验证
+
+#### 环节 5: 结果返回用户 (60%) ⚠️
+
+**已实现:**
+- [x] RPC `getPublicTaskStatus(task_id)` 查询端点
+- [x] `PublicTaskStatus::Completed { result_data, miner, execution_time_ms }`
+
+**待完成:**
+- [ ] **结果编码格式**: tensor bytes 如何序列化给用户 (JSON? protobuf? base64?)
+- [ ] **大结果处理**: 设计提到 IPFS/Arweave 存储，代码未集成
+- [ ] **流式返回**: 只有轮询，无 WebSocket/SSE 推送
+- [ ] **超时通知**: 任务超时后用户如何得知
+- [ ] **用户 SDK 查询**: qfc-sdk-js / qfc-openclaw-skill 添加结果查询 API
+
+#### 环节 6: 费用结算 (50%) ⚠️⚠️
+
+**已实现:**
+- [x] `calculate_inference_score()` — `sqrt(tasks) * (flops/1e9) * pass_rate` (`qfc-consensus/src/scoring.rs`)
+- [x] PoC v2 评分集成 — inference_score 占计算维度 20% 权重
+- [x] 矿工注册 RPC `registerMiner()` + GPU 声明验证
+- [x] `ValidatorNode` 包含 `inference_score` / `tasks_completed` 字段
+
+**待完成 (关键阻塞):**
+- [ ] **QFC 转账代码**: 验证通过后 → 将 fee 从 escrow 转给矿工 (完全缺失)
+- [ ] **Escrow 账户管理**: 用户提交任务时锁定 fee、完成后释放、超时退还
+- [ ] **Slashing 执行**: 检测到作弊但没有实际扣除 stake 的代码
+- [ ] **Fee 计算公式**: 设计有 `max_fee` 但实际费用如何计算 (按 FLOPS? 按时间? 按 gas?)
+- [ ] **分润比例落地**: 设计是 70% 矿工 / 10% 验证节点 / 20% 销毁，代码未实现
+- [ ] **区块奖励中的推理贡献**: scoring 有但奖励分配逻辑缺失
+
+---
+
+### 13. AI 推理链路补全路线图
+
+> 目标: 逐项补齐上述 6 个环节的空白，使推理链路端到端可用
+
+#### Phase A: 费用结算核心 (最高优先级)
+
+> 环节 6 是整个链路的经济基础，不结算 = 无激励 = 无矿工
+
+- [ ] A1: Escrow 模块 — 任务提交时锁定 fee 到 escrow 账户
+- [ ] A2: 结算执行 — proof 验证通过后，70% fee → 矿工, 10% → 验证节点, 20% burn
+- [ ] A3: 超时退款 — 任务超时自动退还 escrow 到用户
+- [ ] A4: Slashing 执行 — 抽检失败时实际扣除 5% stake + 6h jail
+- [ ] A5: Fee 定价模型 — 按 GPU tier + 模型大小 + FLOPS 估算基准价格
+
+#### Phase B: 结果返回完善
+
+> 环节 5 是用户体验的最后一公里
+
+- [ ] B1: 结果编码规范 — 定义标准输出格式 (JSON envelope + base64 payload)
+- [ ] B2: 大结果存储 — 超过 1MB 的结果上传 IPFS，链上存 CID
+- [ ] B3: 结果推送 — WebSocket/SSE 通知任务完成
+- [ ] B4: SDK 集成 — qfc-sdk-js 添加 `submitInference()` / `getInferenceResult()`
+- [ ] B5: OpenClaw 推理技能 — 自然语言发起推理 + 查询结果
+
+#### Phase C: 任务路由加固
+
+> 环节 2 的可靠性直接影响任务完成率
+
+- [ ] C1: RPC→TaskPool 流转代码审计 — 确认 `submitPublicTask` 的完整路径
+- [ ] C2: 任务超时重分配 — 超时后自动分配给其他矿工
+- [ ] C3: 任务优先级队列 — 按 fee 排序，高价任务优先执行
+
+#### Phase D: 用户入口增强
+
+> 环节 1 降低使用门槛
+
+- [ ] D1: `TransactionType::InferenceTask` — 专用交易类型
+- [ ] D2: 钱包推理 UI — qfc-wallet 添加推理任务提交界面
+- [ ] D3: Explorer 推理状态 — 任务状态追踪页面
+
+#### Phase E: 执行层加固
+
+> 环节 3、4 的生产化
+
+- [ ] E1: 模型下载管理器 — 完善 ModelCache 自动下载 + LRU 驱逐
+- [ ] E2: GPU 监控指标 — 温度/功率/利用率 → Prometheus metrics
+- [ ] E3: Challenge 仲裁 — 多验证者重新执行 + 多数投票
+
+---
+
+### 历史记录: 已完成的推理链路里程碑
+
+<details>
+<summary>P0/P1/P2 完成记录 (2026-03-05)</summary>
+
+**P0 — 链路基础：** ✅ 已完成
+
+- [x] **Proof → 链状态更新**: `submit_inference_proof()` RPC 验证通过后调用 `update_inference_score()`
 - [x] **Proof 签名**: qfc-miner `--private-key` 参数签名 proof；RPC 端验证签名
 - [x] **Spot-check 实际执行**: RPC handler 注入 CPU InferenceEngine，5% 概率重跑推理验证
-- [x] **Slashing 触发**: 抽检输出哈希不匹配 → `slash_validator(5%, 6h jail)`
-- [x] **tasks_completed 累加 bug**: 修复 `saturating_add` (之前每次覆盖为 1)
+- [x] **Slashing 触发**: 抽检输出哈希不匹配 → `slash_validator(5%, 6h jail)` (触发路径有，执行待确认)
+- [x] **tasks_completed 累加 bug**: 修复 `saturating_add`
 
-**P1 — 功能完整性：** ✅ 已全部完成 (2026-03-05)
+**P1 — 框架完整：** ✅ 已完成
 
-- [x] **Proof 上链**: `proofs_root` Merkle root 写入 BlockHeader, `inference_proofs` 打包进 Block/BlockBody, ProofPool 缓冲池 (max 2000), 每块最多 500 条证明
-- [x] **费用结算**: 70% 矿工 / 10% 验证节点 / 20% 销毁; BlockProducer 在出块时自动匹配公共任务并结算; 过期任务自动退款
-- [x] **公共任务流**: `submitPublicTask` 解析提交者地址 + Ed25519 签名验证 + 余额 escrow; `submit_inference_proof` 自动匹配完成任务; `getPublicTaskStatus` 查询结果
-- [x] **CUDA 后端**: `Dockerfile.cuda` (节点) + `Dockerfile.miner-cuda` (矿工), nvidia/cuda:12.2.0 基础镜像, `--features candle,cuda`
+- [x] **Proof 上链框架**: `proofs_root` 写入 BlockHeader, ProofPool 缓冲池
+- [x] **费用结算框架**: 70/10/20 分润设计，出块时匹配公共任务
+- [x] **公共任务流**: submitPublicTask + Ed25519 签名 + getPublicTaskStatus
+- [x] **CUDA 后端**: Dockerfile.cuda + Dockerfile.miner-cuda
 
-**P2 — 生产就绪：** ✅ 已全部完成 (2026-03-05)
+**P2 — 高级功能：** ✅ 已完成
 
-- [x] **矿工注册上链**: GPU Benchmark 分数 (0-10000) + Tier (T1/T2/T3) 上链记录; `qfc_registerMiner` RPC + `validate_gpu_claim` GPU 声明验证
-- [x] **Challenge Tasks**: 预计算挑战任务 (CpuEngine 已知答案), 自适应注入率 (新矿工 10% / 低信誉 8% / 标准 5%), 惩罚升级 (单次 -500bps / 3 连败 slash 5% + jail 3d)
-- [x] **冗余验证**: 高价值任务 (fee > 1 QFC) 发给 3 个矿工, 多数一致输出胜出, 不一致矿工 -1000bps 信誉
-- [x] **三层模型调度**: Hot/Warm/Cold VRAM 分层 + LRU 驱逐策略, `--hot-models` / `--warm-max-mb` / `--vram-reserved-mb` CLI 参数
-- [x] **Task Router**: 链下全局调度器, Hot > Warm > Cold > Any 优先级, 最少负载选择; `qfc_reportMinerStatus` 心跳 RPC
-- [x] **多矿工单元测试**: 20 个新测试 (challenge 5 + redundant 5 + router 5 + scheduler 5)
+- [x] **矿工注册上链**: GPU Benchmark + Tier + `qfc_registerMiner` RPC
+- [x] **Challenge Tasks**: 预计算挑战任务 + 自适应注入率
+- [x] **冗余验证**: 高价值任务 3 矿工多数一致
+- [x] **三层模型调度**: Hot/Warm/Cold + LRU 驱逐
+- [x] **Task Router**: 链下全局调度 + 心跳 RPC
+
+</details>
 
 ---
 
@@ -716,6 +850,13 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ SDK 测试 (JS 181 + Python 18 + Core 258 测试)
 ├── ✅ QVM 完整栈 (编译器 + VM + 标准库 + JIT + LSP)
 └── ✅ OpenClaw 技能 (钱包管理 + 安全策略)
+
+🔴 推理链路补全 (v2.1):
+├── Phase A: 费用结算核心 (escrow, 转账, slashing 执行, fee 定价)
+├── Phase B: 结果返回完善 (编码格式, IPFS, WebSocket, SDK)
+├── Phase C: 任务路由加固 (流转审计, 超时重分配, 优先级队列)
+├── Phase D: 用户入口增强 (专用 TX 类型, 钱包 UI, Explorer)
+└── Phase E: 执行层加固 (模型管理, GPU 监控, Challenge 仲裁)
 
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
