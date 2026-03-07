@@ -356,17 +356,16 @@
 - [ ] **钱包 SDK 集成**: qfc-sdk-js / qfc-wallet 添加推理任务提交 API
 - [ ] **OpenClaw 推理技能**: qfc-openclaw-skill 添加推理查询功能
 
-#### 环节 2: 交易路由到 AI-VM (70%)
+#### 环节 2: 交易路由到 AI-VM (95%) ✅
 
 **已实现:**
 - [x] `TaskPool` — 任务提交、合成任务生成 (每 epoch 3 个)、按能力匹配矿工
 - [x] `TaskRouter` — Hot/Warm/Cold 三层调度、负载均衡、5 分钟超时清理
 - [x] `TaskRequirements` — GPU tier / VRAM / FLOPS 匹配
-
-**待完成:**
-- [ ] **RPC → TaskPool 完整流转**: `submitPublicTask` 如何经 mempool 到 TaskPool 的明确路径
 - [x] **Fee escrow 实现**: `submitPublicTask` RPC 中 `sub_balance()` 锁定 fee (Phase A 完成)
-- [ ] **任务超时重分配**: 超时后自动分配给其他矿工
+- [x] **RPC→TaskPool 完整流转**: submitPublicTask→task_pool→fetch→proof→settle，PublicTask 状态完整追踪 (Phase C1)
+- [x] **任务超时重分配**: `reassign_stale_tasks()` 30s 超时自动回队列 (Phase C2)
+- [x] **优先级队列**: `fetch_task_for()` 按 max_fee 降序选择，高价任务优先 (Phase C3)
 
 #### 环节 3: GPU 节点执行推理 (95%)
 
@@ -451,13 +450,13 @@
 - [x] B4: SDK 集成 — `getPublicTaskStatus()` 结构化返回 + `waitForInferenceResult()` 轮询
 - [x] B5: OpenClaw 推理技能 — `QFCInference` 类: getModels/getStats/getTaskStatus/waitForResult/decode
 
-#### Phase C: 任务路由加固
+#### Phase C: 任务路由加固 ✅ 完成
 
 > 环节 2 的可靠性直接影响任务完成率
 
-- [ ] C1: RPC→TaskPool 流转代码审计 — 确认 `submitPublicTask` 的完整路径
-- [ ] C2: 任务超时重分配 — 超时后自动分配给其他矿工
-- [ ] C3: 任务优先级队列 — 按 fee 排序，高价任务优先执行
+- [x] C1: 流转审计 + 状态追踪 — `fetch_task_for()` 时 PublicTask 状态更新为 Assigned，记录 miner/时间
+- [x] C2: 超时重分配 — `reassign_stale_tasks()` 30s 内无 proof 自动回 pending 队列，block producer 每轮调用
+- [x] C3: 优先级队列 — `fetch_task_for()` 扫描全 pending，选择 max_fee 最高的匹配任务
 
 #### Phase D: 用户入口增强
 
