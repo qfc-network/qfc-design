@@ -1,6 +1,6 @@
 # QFC Blockchain - 待办事项与路线图
 
-> 最后更新: 2026-03-07
+> 最后更新: 2026-03-08
 
 ## 项目现状总览
 
@@ -679,32 +679,44 @@
 
 ---
 
-### 9. ~~区块浏览器增强~~ ✅ 已完成
+### 9. 区块浏览器 — Etherscan 对标
 
-**仓库**: `qfc-explorer/` (现有)
+**仓库**: `qfc-explorer/` + `qfc-explorer-api/`
 
-**完成内容**:
+**v2.0 已完成功能** (2026-03-08):
 
-- [x] 高级分析仪表板 (/analytics)
-  - [x] TPS 图表 (历史趋势)
-  - [x] Gas 使用趋势
-  - [x] 区块时间图表
-  - [x] 验证者统计表格
-- [x] 数据导出 (CSV/JSON)
-  - [x] 支持 TPS、Gas、区块时间、验证者数据导出
-  - [x] 支持区块和交易列表导出
-- [x] 合约交互界面 (Read/Write)
-  - [x] /contract/[address] 页面
-  - [x] ERC-20 标准函数支持
-  - [x] 自定义 ABI 输入
-  - [x] 合约列表页面 (/contracts)
-- [x] 代币持有者排行 (已在 /token/[address] 实现)
-- [x] API 速率限制仪表板
-  - [x] 内存速率限制 (100 req/min per IP)
-  - [x] Admin 页面实时监控
-  - [x] Top IPs 和 Recent Requests 显示
+- [x] 核心浏览 (28 页面, 18 API 路由)
+  - [x] 区块/交易/地址详情页 (含 cursor 分页)
+  - [x] 内部交易 (debug_traceTransaction)
+  - [x] 事件日志自动 ABI 解码
+  - [x] Mempool/待处理交易浏览
+- [x] 智能合约
+  - [x] 合约验证 (Solc 编译 + Standard JSON Input)
+  - [x] 合约交互 UI (Read/Write)
+  - [x] 代理合约检测 (EIP-1967/1822/Beacon)
+  - [x] Etherscan 兼容 API (Hardhat/Foundry verify)
+- [x] Token & NFT
+  - [x] ERC-20/721/1155 跟踪
+  - [x] 持有者排行 + 分布图
+  - [x] NFT 画廊 (IPFS 元数据解析)
+- [x] 分析与监控
+  - [x] Analytics 面板 (TPS, Gas, 出块时间图表)
+  - [x] Gas Tracker (价格统计, 区块利用率, 消耗排行)
+  - [x] 排行榜 (余额/活跃度/验证者/合约)
+  - [x] CSV 数据导出
+- [x] 搜索 & 工具
+  - [x] 全局搜索 (区块/交易/地址/Token/标签)
+  - [x] ABI 工具 (keccak256, selector 查询, calldata 解码)
+  - [x] 地址标签系统
+- [x] 基础设施
+  - [x] SEO metadata + Open Graph
+  - [x] i18n 4 语言 (en/zh/ja/ko)
+  - [x] Skeleton loading + Error boundaries
+  - [x] SSE + WebSocket 实时更新
+  - [x] Prometheus 监控 (API + Indexer)
+  - [x] 116 个单元测试
 
-**完成时间**: 2026-02-02
+**与 Etherscan 的差距** → 见 §14
 
 ---
 
@@ -824,6 +836,49 @@
 
 ---
 
+### 14. Explorer — 对标 Etherscan 路线图
+
+> 目标: 补齐与 Etherscan 的功能差距，优先面向主网上线的必备功能
+
+#### Phase A: 用户系统 (高优先级)
+
+- [ ] A1: 用户注册/登录 (邮箱 + OAuth)
+- [ ] A2: Watchlist — 关注地址，余额变动通知 (邮件/webhook)
+- [ ] A3: API Key 管理 — 开发者申请 API key，配额管理，rate limit 分级
+- [ ] A4: 用户地址备注 — 用户自定义私有地址标签
+- [ ] A5: 交易备注 — 用户为交易添加私有备注
+
+#### Phase B: 市场数据集成 (高优先级)
+
+- [ ] B1: Token 价格集成 — 对接 CoinGecko/CMC API，显示价格/市值/24h 变化
+- [ ] B2: Token 排行页 — 按市值/持有人数/交易量排序
+- [ ] B3: 地址余额估值 — 显示持仓 USD 价值
+- [ ] B4: Gas 价格预言机 — 实时 gas 价格建议 (slow/standard/fast)
+
+#### Phase C: 合约增强 (中优先级)
+
+- [ ] C1: Read as Proxy — 通过代理合约直接读写实现合约函数
+- [ ] C2: 多文件验证 — 支持 Truffle/Hardhat 项目结构上传验证
+- [ ] C3: Vyper 合约验证 — 支持 Vyper 编译器
+- [ ] C4: 合约 Diff — 比较两个合约的源码差异
+
+#### Phase D: 高级过滤与搜索 (中优先级)
+
+- [ ] D1: 高级交易过滤 — 按金额范围、方法名、时间范围、Token 类型
+- [ ] D2: Token Approval 管理页 — 显示/撤销所有 Token 授权
+- [ ] D3: 地址标签分类 — 交易所、DeFi、桥、MEV bot 等标签
+- [ ] D4: 批量地址查询 — 批量查余额、交易数
+
+#### Phase E: 社区 & 生态 (低优先级)
+
+- [ ] E1: 合约评论系统 — 用户对合约发表评论/评分
+- [ ] E2: DeFi 协议识别 — 自动标记 Uniswap/Aave 等协议交易
+- [ ] E3: 地址画像 — 地址活动分析 (首次交易时间、常交互合约、活跃度)
+- [ ] E4: 交易可视化 — 资金流向图 (Sankey diagram)
+- [ ] E5: 多签钱包检测 — Safe/Gnosis 等多签识别与展示
+
+---
+
 ## 优先级排序建议
 
 ```
@@ -858,6 +913,13 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── Phase C: 任务路由加固 (流转审计, 超时重分配, 优先级队列)
 ├── Phase D: 用户入口增强 (专用 TX 类型, 钱包 UI, Explorer)
 └── Phase E: 执行层加固 (模型管理, GPU 监控, Challenge 仲裁)
+
+🔴 Explorer 对标 Etherscan (§14):
+├── Phase A: 用户系统 (注册/Watchlist/API Key)
+├── Phase B: 市场数据 (Token 价格/市值/排行)
+├── Phase C: 合约增强 (Read as Proxy/多文件验证)
+├── Phase D: 高级过滤 (交易过滤/Approval 管理)
+└── Phase E: 社区生态 (评论/DeFi 识别/地址画像)
 
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
