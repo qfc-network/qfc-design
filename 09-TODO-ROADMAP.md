@@ -406,7 +406,7 @@
 - [x] **OpenClaw 推理技能**: `QFCInference` 类 — 查询/等待/解码结果 (B5)
 
 **待完成:**
-- [ ] **大结果处理**: 设计提到 IPFS/Arweave 存储，代码未集成 (>1MB 结果)
+- [x] **大结果处理**: IpfsClient 自动上传 >1MB 结果到 Kubo, `qfc_getInferenceResult(cid)` 网关代理
 
 #### 环节 6: 费用结算 (95%) ✅
 
@@ -446,7 +446,7 @@
 > 环节 5 是用户体验的最后一公里
 
 - [x] B1: 结果编码规范 — JSON envelope + base64 payload + submitter/model/timestamps 元信息
-- [ ] B2: 大结果存储 — 超过 1MB 的结果上传 IPFS，链上存 CID (deferred)
+- [x] B2: 大结果存储 — IpfsClient (Kubo API) 自动上传 >1MB 结果, ResultStorage::Ipfs { cid, size, preview }, RPC 代理 `getInferenceResult(cid)`, SDK/OpenClaw 透明获取
 - [x] B3: 结果推送 — `qfc_subscribeTaskStatus` WebSocket 订阅，自动推送状态变更至终态
 - [x] B4: SDK 集成 — `getPublicTaskStatus()` 结构化返回 + `waitForInferenceResult()` 轮询
 - [x] B5: OpenClaw 推理技能 — `QFCInference` 类: getModels/getStats/getTaskStatus/waitForResult/decode
