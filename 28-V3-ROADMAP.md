@@ -90,7 +90,7 @@ QFC v2.0 delivered a working AI inference network: miners run real inference tas
 - PoC-weighted leader election needs careful simulation to avoid gaming
 - Migration from current PoC consensus requires upgrade path design
 
-**Estimated effort**: 2 engineers, 10-12 weeks
+**Estimated effort**: 2-3 weeks (1-2 dev + Claude Code). Fork Sui's Mysticeti as base, adapt for PoC weighting. Consensus correctness testing is the bottleneck, not code volume.
 
 #### 1.2 Tiered zkML Verification
 
@@ -123,7 +123,7 @@ QFC v2.0 delivered a working AI inference network: miners run real inference tas
 - Proof verification gas cost on EVM side
 - ONNX model compatibility (QFC already uses OnnxInference — good fit)
 
-**Estimated effort**: 2 engineers, 8-10 weeks
+**Estimated effort**: 2-3 weeks (1 dev + Claude Code). EZKL integration is mostly FFI/sidecar + new task type variant. Challenge protocol is new Rust logic but builds on existing spot-check framework.
 
 #### 1.3 BME Tokenomics
 
@@ -157,7 +157,7 @@ Miner earns:
 - Reverse auction may race-to-the-bottom for low-margin inference
 - Need careful simulation before deploying
 
-**Estimated effort**: 1 engineer + 1 economist, 6-8 weeks
+**Estimated effort**: 1-2 weeks (1 dev + Claude Code) for implementation. Economic simulation and parameter tuning require additional 1-2 weeks of modeling (spreadsheet/Python, not code-bottlenecked).
 
 ---
 
@@ -222,7 +222,7 @@ Inspired by Render's OctaneBench — a standardized performance score per GPU.
 
 **Design principle**: Positive ROI on electricity costs alone within 3-6 months, no hardware purchase required.
 
-**Estimated effort**: 2 engineers, 8-10 weeks
+**Estimated effort**: 2-3 weeks (1 dev + Claude Code). QIB benchmark and anti-gaming build on existing `qfc-inference` + `qfc-ai-coordinator`. P2P model swarm leverages existing libp2p stack.
 
 ---
 
@@ -283,7 +283,7 @@ Hyperlane → callback on external chain
 
 **Two-path design**: Direct Mode (existing TaskPool, <1s) for real-time; Intent Mode (5-30s) for cost-optimized/complex jobs. Users choose.
 
-**Estimated effort**: 3 engineers, 10-14 weeks (all of Phase 3)
+**Estimated effort**: 3-4 weeks total for Phase 3 (1-2 dev + Claude Code). Cross-chain oracle (Solidity + Rust) is the largest item. Agent resources leverage existing QVM. Intent matchmaker is a focused Rust module.
 
 ---
 
@@ -319,7 +319,7 @@ Hyperlane → callback on external chain
 | Contract allowlists | Agents can only interact with whitelisted contracts |
 | Paymaster | Gas abstraction for agents (sponsor pays gas) |
 
-**Estimated effort**: 2 engineers, 8-10 weeks
+**Estimated effort**: 1-2 weeks (1 dev + Claude Code). Mostly Solidity contracts (OpenZeppelin patterns) + TypeScript plugin — Claude Code's strongest area. v2.0 reference: entire SDK + OpenClaw skill was done in 1 day.
 
 ---
 
@@ -383,14 +383,56 @@ Phase 4 (agents) ─────────────────────
 
 ## 6. Engineering Resource Estimate
 
-| Phase | Duration | Engineers | Key Skills |
-|-------|----------|-----------|------------|
-| Phase 1 | 10-12 weeks | 4-5 | Consensus (Rust), ZK cryptography, token economics |
-| Phase 2 | 8-10 weeks | 2-3 | libp2p/networking (Rust), GPU/ML, benchmarking |
-| Phase 3 | 10-14 weeks | 3-4 | Cross-chain (Solidity + Rust), Move/QVM, protocol design |
-| Phase 4 | 8-10 weeks | 2-3 | Solidity (ERC-4337), TypeScript (ElizaOS), frontend |
+> **Context**: QFC is developed entirely with **Claude Code** assistance. Based on v2.0 experience (3,372 lines of new Rust code + 316 tests + 5 crate modifications + testnet deployment + SDK updates + Explorer integration — all completed in ~3 days by 1 developer + Claude Code), we apply a **3-5x productivity multiplier** vs traditional development.
+>
+> Reference: v2.0 AI inference network (Phase 1-8) was scoped as "6-8 weeks for 2-3 engineers" traditionally, but was completed by **1 developer in ~1 week** with Claude Code.
 
-**Phases 1 & 2 can overlap** (2.3 P2P model distribution is independent). With 5 engineers, total estimated timeline: **6-9 months**.
+### With Claude Code (1-2 developers + Claude Code)
+
+| Phase | Traditional Estimate | Claude Code Estimate | Developers | Notes |
+|-------|---------------------|---------------------|------------|-------|
+| Phase 1 | 10-12 weeks (4-5 eng) | **3-4 weeks** | 1-2 | DAG consensus is the hardest — may need to fork Sui's Mysticeti. zkML + BME parallel. |
+| Phase 2 | 8-10 weeks (2-3 eng) | **2-3 weeks** | 1 | QIB benchmark + P2P swarm are well-scoped Rust tasks. Anti-gaming builds on existing spot-check. |
+| Phase 3 | 10-14 weeks (3-4 eng) | **3-4 weeks** | 1-2 | Cross-chain (Solidity + Rust) is the widest scope. Agent resources leverage existing QVM. |
+| Phase 4 | 8-10 weeks (2-3 eng) | **1-2 weeks** | 1 | Mostly Solidity contracts + TypeScript plugin — Claude Code's sweet spot. |
+
+### Timeline (with Phase overlap)
+
+```
+Week:  1  2  3  4  5  6  7  8  9  10  11  12
+       ├──────────────────┤
+       Phase 1: DAG + zkML + BME
+                ├─────────────┤
+                Phase 2: QIB + P2P + Anti-Gaming
+                      ├──────────────────┤
+                      Phase 3: Oracle + Agents + Intent
+                                     ├──────┤
+                                     Phase 4: Token Factory + ElizaOS
+```
+
+**Total: ~10-12 weeks (2.5-3 months) with 1-2 developers + Claude Code.**
+
+Compare: traditional estimate was 6-9 months with 5 engineers.
+
+### What Claude Code accelerates most
+
+| Task Type | Speedup | Why |
+|-----------|---------|-----|
+| Rust crate scaffolding + types | **5-8x** | Boilerplate generation, trait implementations, test stubs |
+| Solidity contracts | **5-10x** | OpenZeppelin patterns, ERC standards, test suites |
+| TypeScript SDK/plugins | **5-10x** | Type definitions, API wrappers, test coverage |
+| Protocol design + data structures | **3-5x** | Struct definitions, serialization, validation logic |
+| Consensus algorithm core logic | **2-3x** | Requires deep understanding; Claude assists but human must verify correctness |
+| Cryptographic integration (zkML) | **2-3x** | FFI bindings, proof format handling; math must be audited |
+| Performance tuning + benchmarking | **1.5-2x** | Requires real hardware profiling; Claude helps with harness code |
+
+### What Claude Code does NOT accelerate
+
+- **Consensus correctness verification** — must be formally reasoned about, simulated, and tested under adversarial conditions
+- **Cryptographic security audit** — ZK proof integration needs expert review regardless of who writes the code
+- **Real-world performance tuning** — DAG consensus at 100K+ TPS needs actual multi-node benchmarking
+- **Cross-chain deployment** — Hyperlane/LayerZero integration involves external team coordination and testnet access
+- **Economic simulation** — BME parameters need token flow modeling, not just code
 
 ---
 
