@@ -8,20 +8,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 文档结构
 
-| 文档 | 内容 |
-|------|------|
-| `START-HERE.md` | 快速开始指南，浏览器钱包实施计划 |
-| `00-PROJECT-OVERVIEW.md` | 项目总览、技术栈、开发阶段 |
-| `01-BLOCKCHAIN-DESIGN.md` | 区块链核心设计（数据结构、P2P、状态、RPC） |
-| `02-CONSENSUS-MECHANISM.md` | PoC 共识机制详细设计 |
-| `05-BLOCK-EXPLORER.md` | 区块浏览器设计 |
-| `07-WALLET-DESIGN.md` | 浏览器钱包完整技术规范 |
-| `09-TODO-ROADMAP.md` | **待办事项与开发路线图** |
+All docs are bilingual: `XX-NAME-cn.md` (Chinese) / `XX-NAME-en.md` (English).
 
-待补充文档：
-- `03-SMART-CONTRACT-SYSTEM.md` - 智能合约系统
-- `04-NODE-OPERATION.md` - 节点运行
-- `06-TESTNET-SETUP.md` - 测试网搭建
+| 编号 | 内容 |
+|------|------|
+| `START-HERE` | 快速开始指南，浏览器钱包实施计划 |
+| `00` | 项目总览、技术栈、开发阶段 |
+| `01` | 区块链核心设计（数据结构、P2P、状态、RPC） |
+| `02` | PoC 共识机制详细设计 |
+| `03` | 代币经济学 |
+| `05` | 区块浏览器设计 |
+| `07` | 浏览器钱包完整技术规范 |
+| `09` | **待办事项与开发路线图** |
+| `10` | QuantumScript 语言规范 |
+| `11` | 链差距分析 |
+| `12` | 主网验证者分配 |
+| `13` | AI 算力网络设计 |
+| `14` | OpenClaw 集成 |
+| `15` | 竞品分析 |
+| `16` | 推理证明验证 |
+| `17-29` | v3.0 研究文档（智能合约、AI模型、隐私推理、zkML、DAG共识、代币经济学对比、去中心化模型存储、AI Agent、跨链预言机、DePIN、意图架构、v3.0路线图、Ethereum 2030启发） |
 
 ## 项目核心创新
 
@@ -76,7 +82,7 @@ GitHub 组织: https://github.com/qfc-network
 在各实现仓库开发时，引用本仓库的设计文档：
 
 ```
-请根据 qfc-design/07-WALLET-DESIGN.md 中的设计实现 [具体功能]
+请根据 qfc-design/07-WALLET-DESIGN-cn.md 中的设计实现 [具体功能]
 ```
 
 各实现仓库应有自己的 CLAUDE.md 文件，包含该仓库特定的构建命令和开发指南。
