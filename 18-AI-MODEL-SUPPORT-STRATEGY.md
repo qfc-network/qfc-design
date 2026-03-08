@@ -1,7 +1,8 @@
 # AI Model Support Strategy: What Models Should QFC Support?
 
-> Last Updated: 2026-03-08 | Version 1.0
+> Last Updated: 2026-03-08 | Version 1.1
 > GitHub Issue: #10
+> Review: #11 (qfc-core implementation feedback incorporated)
 
 ---
 
@@ -150,6 +151,79 @@ INT4:  params (B) × 0.5 = GB needed
 
 **Recommendation**: Support GGUF as primary format (widest compatibility with llama.cpp ecosystem), ONNX for embedding/classification models.
 
+### 4.4 Cross-Backend Determinism (Critical Implementation Constraint)
+
+> **Issue #11 feedback**: This is a key gap. QFC's spot-check verification requires
+> `output_hash` match between miner and validator, but floating-point results differ
+> across backends (GPU vs CPU, NVIDIA vs AMD vs Apple Silicon, FP16 vs FP32).
+
+**The problem**:
+- FP16 (GPU) vs FP32 (CPU) produce different rounding results
+- Different GPU architectures (CUDA vs Metal vs ROCm) have different FP precision
+- Quantized models (GGUF Q4) may produce different results on different hardware
+- Current `verification.rs` uses strict `output_hash` matching — this will break with multi-backend support
+
+**Proposed verification strategy (tiered)**:
+
+| Model Type | Verification Method | Rationale |
+|------------|-------------------|-----------|
+| Embedding | **Cosine similarity > 0.999** | Small FP differences acceptable; semantic meaning preserved |
+| Classification | **Top-K class match** | Same top prediction = correct, even if logit values differ slightly |
+| TextGeneration (temp=0) | **Token-level match** | Compare decoded token sequence, not raw logits |
+| TextGeneration (temp>0) | **Statistical validation** | Non-deterministic by nature; use challenge tasks with known outputs |
+| ImageGeneration | **LPIPS perceptual similarity < threshold** | Pixel-exact match impossible across backends |
+| SpeechToText | **WER (Word Error Rate) match** | Compare transcription text, not audio features |
+
+**Implementation approach**:
+1. Define a `VerificationMode` enum per `ComputeTaskType`
+2. Embedding/Classification: compute similarity metric instead of hash equality
+3. TextGeneration: hash the decoded token IDs (not raw float outputs)
+4. For spot-check: validator must use the **same quantization format and backend** as the miner, or use approximate matching
+
+**Near-term workaround**: Require all miners and validators to use the same canonical model weights (pinned GGUF file) with deterministic seed. This limits backend diversity but ensures hash match.
+
+### 4.5 Quantization Infrastructure
+
+> **Issue #11 feedback**: candle's quantized model loading path (`quantized_qwen2.rs`)
+> is completely different from the safetensors path. GGUF files are in different HF repos.
+
+**Required changes to `qfc-inference`**:
+
+```
+ModelRegistry entry needs:
+  - quantization_format: Option<QuantFormat>  // GGUF, GPTQ, AWQ, None (FP16)
+  - hf_repo: String                           // e.g., "Qwen/Qwen2.5-3B-Instruct-GGUF"
+  - hf_revision: String                       // Pinned commit hash (see 4.6)
+  - weight_filename: String                   // e.g., "qwen2.5-3b-instruct-q4_k_m.gguf"
+
+download.rs changes:
+  - Support GGUF file downloads (single file, not sharded safetensors)
+  - Verify blake3 hash of downloaded weights against registry
+  - Different model loading branch: candle::quantized vs candle::safetensors
+```
+
+### 4.6 Model Version Pinning
+
+> **Issue #11 feedback**: HuggingFace models can be updated by authors silently.
+> Different miners downloading at different times may get different weights → hash mismatch.
+
+**Solution**: Lock every model to a specific HuggingFace commit revision.
+
+```rust
+ModelInfo {
+    id: ModelId::new("qfc-llm-3b", "v1.0"),
+    hf_repo: "Qwen/Qwen2.5-3B-Instruct-GGUF",
+    hf_revision: "abc123def456",              // Pinned commit hash
+    weight_hash: Hash::from_hex("..."),       // Blake3 hash of weight file
+    weight_filename: "qwen2.5-3b-instruct-q4_k_m.gguf",
+    // ...
+}
+```
+
+- Miners verify `weight_hash` after download before registering the model
+- Model upgrades (e.g., Qwen2.5 → Qwen3) go through governance as a new model proposal
+- Old model version remains active during transition period (see Section 9)
+
 ---
 
 ## 5. QFC Current State vs Recommended Expansion
@@ -175,9 +249,12 @@ TextGeneration, ImageClassification, Embedding, OnnxInference
 ImageGeneration,    // Stable Diffusion, FLUX
 SpeechToText,       // Whisper
 TextToSpeech,       // XTTS, Bark
-CodeGeneration,     // CodeLlama, DeepSeek Coder
 VisionLanguage,     // Qwen-VL, LLaVA
 ```
+
+> **Note**: Code generation models (Qwen2.5-Coder, DeepSeek-Coder) use `TextGeneration` task type
+> with a code-specialized model. No separate `CodeGeneration` variant needed — the model architecture
+> and decoding logic are identical to standard LLM text generation.
 
 ---
 
@@ -206,7 +283,7 @@ Target audience: dedicated miners with RTX 4070/4080.
 |-------------|-------------|------|-----------|------|
 | qfc-llm-7b | Qwen2.5-7B-Instruct (Q4) | 4.5 GB | TextGeneration | 8 GB |
 | qfc-llm-14b | Qwen2.5-14B-Instruct (Q4) | 8.5 GB | TextGeneration | 12 GB |
-| qfc-coder-14b | Qwen2.5-Coder-14B (Q4) | 8.5 GB | CodeGeneration | 12 GB |
+| qfc-coder-14b | Qwen2.5-Coder-14B (Q4) | 8.5 GB | TextGeneration | 12 GB |
 | qfc-whisper-large | Faster-Whisper large-v3 | 1.5 GB | SpeechToText | 3 GB |
 | qfc-sdxl | Stable Diffusion XL | 6.5 GB | ImageGeneration | 8 GB |
 | qfc-vl-7b | Qwen3-VL-7B (Q4) | 4.5 GB | VisionLanguage | 8 GB |
@@ -249,13 +326,6 @@ pub enum ComputeTaskType {
         audio_hash: Hash,           // Hash of input audio
         language: Option<String>,   // Auto-detect if None
     },
-    CodeGeneration {
-        model_id: ModelId,
-        prompt_hash: Hash,
-        max_tokens: u32,
-        temperature_fp: u32,
-        seed: u64,
-    },
     VisionLanguage {
         model_id: ModelId,
         image_hash: Hash,           // Hash of input image
@@ -263,8 +333,35 @@ pub enum ComputeTaskType {
         max_tokens: u32,
         seed: u64,
     },
+    // NOTE: CodeGeneration is NOT a separate variant.
+    // Code models (Qwen2.5-Coder, DeepSeek-Coder) use TextGeneration
+    // with a code-specialized model_id. Architecture and decoding are identical.
 }
 ```
+
+### 7.1 Large Input Transfer Strategy
+
+> **Issue #11 feedback**: `InferenceTask.input_data: Vec<u8>` works for text (KB-scale),
+> but `ImageGeneration` prompts with reference images and `SpeechToText` audio inputs
+> can be MB to tens of MB. P2P gossip is not viable for large payloads.
+
+**Proposed approach**: Content-addressed external storage with hash-only on-chain reference.
+
+```
+For inputs > 64 KB:
+  1. User uploads input to IPFS (or QFC's storage layer)
+  2. Task submission includes only the content hash (input_hash)
+  3. Miner retrieves input data from IPFS using the hash
+  4. Miner verifies data matches hash before execution
+  5. Result follows the existing pattern (inline <1MB, IPFS CID >1MB)
+
+InferenceTask {
+    input_data: Vec<u8>,          // For small inputs (text prompts)
+    input_cid: Option<String>,    // For large inputs (audio, images) — IPFS CID
+}
+```
+
+This reuses the existing IPFS infrastructure from inference result storage.
 
 ---
 
@@ -292,7 +389,18 @@ pub enum GpuTier {
 }
 ```
 
-The `Ultra` tier enables large models (70B+) that require data center GPUs. The `Secure` tier (from privacy research) enables confidential inference.
+The `Ultra` tier enables large models (70B+) that require data center GPUs. The `Secure` tier (from privacy research, see [19-PRIVACY-AI-INFERENCE.md](19-PRIVACY-AI-INFERENCE.md)) enables confidential inference.
+
+> **Serialization compatibility warning** (Issue #11): `GpuTier` is Borsh-serialized.
+> Adding new enum variants (`Ultra`, `Secure`) will break deserialization for older nodes
+> (similar to the Account struct issue fixed in qfc-core #31).
+>
+> **Migration strategy options**:
+> 1. **Version field**: Add a protocol version to serialized messages; old nodes ignore unknown tiers
+> 2. **Hard fork**: Coordinate network upgrade where all nodes update simultaneously
+> 3. **Reserved variants**: Pre-allocate enum slots now (e.g., `Reserved1 = 3, Reserved2 = 4`) to avoid future breakage
+>
+> **Recommendation**: Option 1 (version field) for flexibility. Implement before adding new tiers.
 
 ---
 
@@ -312,13 +420,38 @@ Models are hardcoded in `ModelRegistry::default_v2()`. Adding a new model requir
 5. Model deprecation via governance vote
 ```
 
+### Governance Cold-Start Strategy
+
+> **Issue #11 feedback**: Who approves models before the governance system has enough participants?
+
+| Phase | Approval Authority | Criteria |
+|-------|-------------------|----------|
+| **Testnet / Early mainnet** | Core team multisig (3-of-5) | Fast iteration, curated quality |
+| **Growth phase** | Core team + top 10 validators by PoC score | Broader input, still manageable |
+| **Mature phase** | Full on-chain governance vote | Decentralized, community-driven |
+
+### Model Sunset Process
+
+When a model is deprecated (e.g., Qwen2.5 → Qwen3):
+
+```
+1. Governance proposal: "Deprecate qfc-llm-7b v1.0, replace with qfc-llm-7b v2.0"
+2. Announcement period: 2 weeks — both versions active
+3. Transition period: 2 weeks — old model weight reduced to 50% in task routing
+4. Sunset: Old model removed from active registry
+   - Existing proofs referencing old model remain valid on-chain
+   - New tasks cannot use the old model
+   - Miners can free storage by evicting old model from cache
+```
+
 ### Model Quality Assurance
 
 Before approval, models should pass:
-- **Determinism check**: Same input + seed → same output (required for verification)
+- **Determinism check**: Same input + seed → same output on canonical backend (required for verification)
 - **Resource bounds**: Memory and compute within tier limits
 - **Security scan**: No known model poisoning or backdoor risks
 - **Benchmark**: Minimum quality thresholds on standard datasets
+- **Weight hash verification**: Blake3 hash of weight files recorded in proposal (see Section 4.6)
 
 ---
 
@@ -334,45 +467,79 @@ Minimum fee: 0.0001 QFC
 
 ### Proposed Fee Model by Task Type
 
-| Task Type | Base Fee Multiplier | Rationale |
-|-----------|-------------------|-----------|
-| Embedding | 1x | Lightweight, fast |
-| Classification | 1x | Lightweight, fast |
-| SpeechToText | 2x | Audio processing overhead |
-| TextGeneration | 1.5x (per token) | Scales with output length |
-| CodeGeneration | 1.5x (per token) | Same as text gen |
-| ImageGeneration | 5x | High compute (20-50 steps of diffusion) |
-| VisionLanguage | 3x | Image encoding + text generation |
+| Task Type | Pricing Unit | Base Fee Multiplier | Rationale |
+|-----------|-------------|-------------------|-----------|
+| Embedding | Per request | 1x | Lightweight, fast, fixed cost |
+| Classification | Per request | 1x | Lightweight, fast, fixed cost |
+| SpeechToText | **Per second of audio** | 2x | Scales with input duration |
+| TextGeneration | **Per output token** | 1.5x | Scales with generation length |
+| ImageGeneration | **Per step × resolution** | 5x | 20-step 512px vs 50-step 1024px = very different cost |
+| VisionLanguage | **Per output token** | 3x | Image encoding (fixed) + text generation (variable) |
 
-Add tier multipliers: Cold=1x, Warm=1.5x, Hot=2x, Ultra=3x, Secure=4x
+> **Issue #11 feedback**: Static multipliers don't capture actual cost variance.
+> A 10-token generation vs 1000-token generation should not cost the same.
+
+**Dynamic fee formula**:
+```
+fee = base_rate × task_units × tier_multiplier × model_size_factor
+
+Where:
+  task_units =
+    TextGeneration: actual_output_tokens
+    SpeechToText: audio_duration_seconds
+    ImageGeneration: steps × (width × height / 512²)
+    Embedding/Classification: 1 (fixed)
+
+  tier_multiplier = Cold:1x, Warm:1.5x, Hot:2x, Ultra:3x, Secure:4x
+  model_size_factor = params_billions / 7  (normalized to 7B baseline)
+```
+
+Fee is estimated at submission (user pays max), actual cost calculated after completion, difference refunded.
 
 ---
 
 ## 11. Implementation Roadmap
 
-### Phase 1: Expand Text Models (2-3 weeks)
+### Phase 1: Quantization Infrastructure + Text Model Expansion (3-4 weeks)
 
-- Add Qwen2.5-3B and Qwen2.5-7B to registry
+- Implement GGUF model loading path in `download.rs` and inference backends
+- Add weight hash verification (blake3) to `ModelCache`
+- Add HF revision pinning to `ModelInfo`
+- Add Qwen2.5-3B-GGUF and Qwen2.5-7B-GGUF to registry
 - Update `model_tier_and_memory()` for new size classes
-- Test quantized model loading in qfc-inference
+- Define `VerificationMode` per task type for cross-backend determinism
 
-### Phase 2: New Task Types (4-6 weeks)
+### Phase 2a: SpeechToText (3-4 weeks)
 
-- Add `ImageGeneration`, `SpeechToText`, `CodeGeneration`, `VisionLanguage` to `ComputeTaskType`
-- Implement inference backends (Stable Diffusion via candle, Whisper via candle)
-- Update task routing and fee calculation
+- Add `SpeechToText` variant to `ComputeTaskType`
+- Implement Whisper backend via candle
+- Large input transfer via IPFS CID (audio files)
+- Per-second-of-audio dynamic pricing
 
-### Phase 3: On-Chain Model Governance (4-6 weeks)
+### Phase 2b: ImageGeneration (6-8 weeks, separate track)
 
+> **Issue #11 feedback**: Diffusion pipelines are multi-model (Text Encoder → U-Net × N steps → VAE Decoder).
+> Engineering complexity is significantly higher than LLM autoregressive decoding.
+> Original 4-6 week estimate was optimistic.
+
+- Add `ImageGeneration` variant to `ComputeTaskType`
+- Implement Stable Diffusion 1.5 pipeline via candle (3 sub-models)
+- Deterministic seed verification strategy (same seed + same GGUF = same image)
+- Per-step × resolution dynamic pricing
+
+### Phase 3: VisionLanguage + Governance (4-6 weeks)
+
+- Add `VisionLanguage` variant to `ComputeTaskType`
+- Implement Qwen-VL backend
 - Activate `ModelGovernance` for proposal/vote workflow
-- Auto-download system for newly approved models
-- Model deprecation and sunset process
+- Model sunset process implementation
+- Cold-start: core team multisig approval
 
 ### Phase 4: Ultra/Secure Tiers (6-8 weeks)
 
-- Add Ultra and Secure GPU tiers
+- Add Ultra and Secure GPU tiers (with serialization migration strategy)
 - Large model support (70B+ with multi-GPU)
-- TEE attestation integration (see doc #19)
+- TEE attestation integration (see [19-PRIVACY-AI-INFERENCE.md](19-PRIVACY-AI-INFERENCE.md))
 
 ---
 
@@ -386,7 +553,7 @@ Based on market data (Akash, io.net, industry reports):
 | Speech transcription | High | SpeechToText (Whisper) |
 | Embeddings/RAG | High | Embedding (MiniLM, BGE-M3) |
 | Image generation | Growing | ImageGeneration (SD, FLUX) |
-| Code assistance | Growing | CodeGeneration (Qwen Coder) |
+| Code assistance | Growing | TextGeneration (Qwen Coder models) |
 | Privacy-focused inference | Emerging | Secure tier (TEE) |
 
 QFC's expanded model registry would cover **>90% of enterprise inference demand**.
