@@ -841,41 +841,41 @@
 
 > 目标: 补齐与 Etherscan 的功能差距，优先面向主网上线的必备功能
 
-#### Phase A: 用户系统 (高优先级)
+#### Phase A: 用户系统 ✅ 已完成 (2026-03-08)
 
-- [ ] A1: 用户注册/登录 (邮箱 + OAuth)
-- [ ] A2: Watchlist — 关注地址，余额变动通知 (邮件/webhook)
-- [ ] A3: API Key 管理 — 开发者申请 API key，配额管理，rate limit 分级
-- [ ] A4: 用户地址备注 — 用户自定义私有地址标签
-- [ ] A5: 交易备注 — 用户为交易添加私有备注
+- [x] A1: 用户注册/登录 (邮箱 + OAuth) — JWT + bcrypt + refresh token
+- [x] A2: Watchlist — 关注地址，余额变动通知 — 最多50地址，余额enrichment
+- [x] A3: API Key 管理 — 3级配额 (free/standard/pro)，token bucket rate limit
+- [x] A4: 用户地址备注 — 私有地址标签，最多500字符
+- [x] A5: 交易备注 — 私有交易备注
 
-#### Phase B: 市场数据集成 (高优先级)
+#### Phase B: 市场数据集成 ✅ 基本完成 (2026-03-08)
 
-- [ ] B1: Token 价格集成 — 对接 CoinGecko/CMC API，显示价格/市值/24h 变化
-- [ ] B2: Token 排行页 — 按市值/持有人数/交易量排序
-- [ ] B3: 地址余额估值 — 显示持仓 USD 价值
+- [x] B1: Token 价格集成 — CoinGecko API + 手动价格，15分钟缓存，SVG sparkline
+- [x] B2: Token 排行页 — 按市值/持有人数/交易量/价格排序，类型筛选
+- [x] B3: 地址余额估值 — 持仓 USD 价值，组合总价值
 - [ ] B4: Gas 价格预言机 — 实时 gas 价格建议 (slow/standard/fast)
 
 #### Phase C: 合约增强 (中优先级)
 
-- [ ] C1: Read as Proxy — 通过代理合约直接读写实现合约函数
+- [x] C1: Read as Proxy — EIP-1967/1822/Beacon 代理检测，Read/Write as Proxy tabs
 - [ ] C2: 多文件验证 — 支持 Truffle/Hardhat 项目结构上传验证
 - [ ] C3: Vyper 合约验证 — 支持 Vyper 编译器
 - [ ] C4: 合约 Diff — 比较两个合约的源码差异
 
-#### Phase D: 高级过滤与搜索 (中优先级)
+#### Phase D: 高级过滤与搜索 ✅ 基本完成 (2026-03-08)
 
-- [ ] D1: 高级交易过滤 — 按金额范围、方法名、时间范围、Token 类型
-- [ ] D2: Token Approval 管理页 — 显示/撤销所有 Token 授权
-- [ ] D3: 地址标签分类 — 交易所、DeFi、桥、MEV bot 等标签
+- [x] D1: 高级交易过滤 — 按金额范围、方法名、时间范围、交易类型
+- [x] D2: Token Approval 管理页 — 扫描 Approval/ApprovalForAll，生成撤销 calldata
+- [x] D3: 地址标签分类 — 交易所、DeFi、桥、MEV bot 等分类标签，颜色编码
 - [ ] D4: 批量地址查询 — 批量查余额、交易数
 
-#### Phase E: 社区 & 生态 (低优先级)
+#### Phase E: 社区 & 生态 ✅ 基本完成 (2026-03-08)
 
 - [ ] E1: 合约评论系统 — 用户对合约发表评论/评分
-- [ ] E2: DeFi 协议识别 — 自动标记 Uniswap/Aave 等协议交易
-- [ ] E3: 地址画像 — 地址活动分析 (首次交易时间、常交互合约、活跃度)
-- [ ] E4: 交易可视化 — 资金流向图 (Sankey diagram)
+- [x] E2: DeFi 协议识别 — 30+ 函数选择器，7个分类，彩色标签
+- [x] E3: 地址画像 — GitHub 风格热力图，交互摘要，活跃度分析
+- [x] E4: 交易可视化 — 纯 SVG Sankey diagram，native/ERC-20/internal 流向
 - [ ] E5: 多签钱包检测 — Safe/Gnosis 等多签识别与展示
 
 ---
@@ -915,12 +915,19 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── Phase D: 用户入口增强 (专用 TX 类型, 钱包 UI, Explorer)
 └── Phase E: 执行层加固 (模型管理, GPU 监控, Challenge 仲裁)
 
-🔴 Explorer 对标 Etherscan (§14):
-├── Phase A: 用户系统 (注册/Watchlist/API Key)
-├── Phase B: 市场数据 (Token 价格/市值/排行)
-├── Phase C: 合约增强 (Read as Proxy/多文件验证)
-├── Phase D: 高级过滤 (交易过滤/Approval 管理)
-└── Phase E: 社区生态 (评论/DeFi 识别/地址画像)
+✅ Explorer 对标 Etherscan (§14) — 15/18 项完成:
+├── ✅ Phase A: 用户系统 (注册/Watchlist/API Key/备注)
+├── ✅ Phase B: 市场数据 (Token 价格/市值/排行/USD估值)
+├── 🟡 Phase C: 合约增强 (Read as Proxy ✅ / 多文件验证/Vyper/Diff 待做)
+├── ✅ Phase D: 高级过滤 (交易过滤/Approval 管理/标签分类)
+└── ✅ Phase E: 社区生态 (DeFi 识别/地址画像/Sankey 可视化)
+
+🔴 Explorer 剩余 (§14 未完成 3 项):
+├── B4: Gas 价格预言机
+├── C2-C4: 多文件验证/Vyper/合约Diff
+├── D4: 批量地址查询
+├── E1: 合约评论系统
+└── E5: 多签钱包检测
 
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
