@@ -380,8 +380,8 @@
 - [x] **模型下载与缓存管理**: `ModelCache` LRU 驱逐 + `ensure_model()` 自动下载 (`qfc-inference/src/model.rs`)
 - [x] **GPU 实时监控**: `GpuMetrics` 温度/功率/利用率采集，支持 NVIDIA/Metal/CPU (`qfc-inference/src/gpu_monitor.rs`)
 
-**待完成:**
-- [ ] **任务并行执行**: 多任务并发处理 (当前 worker 串行循环)
+**暂不实现:**
+- ~~任务并行执行~~: 当前单任务推理仅 40-80ms，瓶颈在 RPC 网络延迟而非推理速度；测试网任务供给有限，串行即可处理；并行涉及 InferenceEngine 共享和显存并发管理，复杂度高。等主网任务量上来后根据实际瓶颈再做。
 
 #### 环节 4: 推理结果验证 (100%) ✅
 
