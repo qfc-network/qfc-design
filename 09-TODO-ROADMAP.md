@@ -849,34 +849,34 @@
 - [x] A4: 用户地址备注 — 私有地址标签，最多500字符
 - [x] A5: 交易备注 — 私有交易备注
 
-#### Phase B: 市场数据集成 ✅ 基本完成 (2026-03-08)
+#### Phase B: 市场数据集成 ✅ 已完成 (2026-03-08)
 
 - [x] B1: Token 价格集成 — CoinGecko API + 手动价格，15分钟缓存，SVG sparkline
 - [x] B2: Token 排行页 — 按市值/持有人数/交易量/价格排序，类型筛选
 - [x] B3: 地址余额估值 — 持仓 USD 价值，组合总价值
-- [ ] B4: Gas 价格预言机 — 实时 gas 价格建议 (slow/standard/fast)
+- [x] B4: Gas 价格预言机 — 百分位 slow/standard/fast，homepage widget + 详情页
 
-#### Phase C: 合约增强 (中优先级)
+#### Phase C: 合约增强 ✅ 已完成 (2026-03-08)
 
 - [x] C1: Read as Proxy — EIP-1967/1822/Beacon 代理检测，Read/Write as Proxy tabs
-- [ ] C2: 多文件验证 — 支持 Truffle/Hardhat 项目结构上传验证
-- [ ] C3: Vyper 合约验证 — 支持 Vyper 编译器
-- [ ] C4: 合约 Diff — 比较两个合约的源码差异
+- [x] C2: 多文件验证 — Standard JSON Input，拖拽上传，入口合约选择器
+- [x] C3: Vyper 合约验证 — CLI/Docker 编译，metadata stripping，Vyper 验证 tab
+- [x] C4: 合约 Diff — LCS line diff，side-by-side DiffView，ABI diff 摘要
 
-#### Phase D: 高级过滤与搜索 ✅ 基本完成 (2026-03-08)
+#### Phase D: 高级过滤与搜索 ✅ 已完成 (2026-03-08)
 
 - [x] D1: 高级交易过滤 — 按金额范围、方法名、时间范围、交易类型
 - [x] D2: Token Approval 管理页 — 扫描 Approval/ApprovalForAll，生成撤销 calldata
 - [x] D3: 地址标签分类 — 交易所、DeFi、桥、MEV bot 等分类标签，颜色编码
-- [ ] D4: 批量地址查询 — 批量查余额、交易数
+- [x] D4: 批量地址查询 — POST /batch/addresses，最多20地址，CSV 导出
 
-#### Phase E: 社区 & 生态 ✅ 基本完成 (2026-03-08)
+#### Phase E: 社区 & 生态 ✅ 已完成 (2026-03-08)
 
-- [ ] E1: 合约评论系统 — 用户对合约发表评论/评分
+- [x] E1: 合约评论系统 — 星级评分 + Markdown 评论，举报/审核
 - [x] E2: DeFi 协议识别 — 30+ 函数选择器，7个分类，彩色标签
 - [x] E3: 地址画像 — GitHub 风格热力图，交互摘要，活跃度分析
 - [x] E4: 交易可视化 — 纯 SVG Sankey diagram，native/ERC-20/internal 流向
-- [ ] E5: 多签钱包检测 — Safe/Gnosis 等多签识别与展示
+- [x] E5: 多签钱包检测 — Safe/Gnosis 代理检测，owners/threshold 展示
 
 ---
 
@@ -915,19 +915,12 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── Phase D: 用户入口增强 (专用 TX 类型, 钱包 UI, Explorer)
 └── Phase E: 执行层加固 (模型管理, GPU 监控, Challenge 仲裁)
 
-✅ Explorer 对标 Etherscan (§14) — 15/18 项完成:
+✅ Explorer 对标 Etherscan (§14) — 18/18 项全部完成:
 ├── ✅ Phase A: 用户系统 (注册/Watchlist/API Key/备注)
-├── ✅ Phase B: 市场数据 (Token 价格/市值/排行/USD估值)
-├── 🟡 Phase C: 合约增强 (Read as Proxy ✅ / 多文件验证/Vyper/Diff 待做)
-├── ✅ Phase D: 高级过滤 (交易过滤/Approval 管理/标签分类)
-└── ✅ Phase E: 社区生态 (DeFi 识别/地址画像/Sankey 可视化)
-
-🔴 Explorer 剩余 (§14 未完成 3 项):
-├── B4: Gas 价格预言机
-├── C2-C4: 多文件验证/Vyper/合约Diff
-├── D4: 批量地址查询
-├── E1: 合约评论系统
-└── E5: 多签钱包检测
+├── ✅ Phase B: 市场数据 (Token 价格/市值/排行/USD估值/Gas预言机)
+├── ✅ Phase C: 合约增强 (Read as Proxy/多文件验证/Vyper/Diff)
+├── ✅ Phase D: 高级过滤 (交易过滤/Approval 管理/标签分类/批量查询)
+└── ✅ Phase E: 社区生态 (评论评分/DeFi 识别/地址画像/Sankey/多签检测)
 
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
