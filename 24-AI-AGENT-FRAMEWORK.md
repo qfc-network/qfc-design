@@ -2,6 +2,7 @@
 
 > Last Updated: 2026-03-08 | Version 1.0
 > GitHub Issue: #6
+> Author: Alex Wei, Product Manager @ QFC Network
 
 ---
 

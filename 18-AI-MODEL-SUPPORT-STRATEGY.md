@@ -3,6 +3,7 @@
 > Last Updated: 2026-03-08 | Version 1.1
 > GitHub Issue: #10
 > Review: #11 (qfc-core implementation feedback incorporated)
+> Author: Alex Wei, Product Manager @ QFC Network
 
 ---
 

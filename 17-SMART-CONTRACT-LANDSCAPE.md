@@ -1,6 +1,7 @@
 # Smart Contract Design Landscape: Competitive Analysis & QFC Implications
 
 > Last Updated: 2026-03-08 | Version 1.0
+> Author: Alex Wei, Product Manager @ QFC Network
 
 ---
 
