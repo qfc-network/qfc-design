@@ -352,9 +352,10 @@
 - [x] 支持 4 种任务类型: TextGeneration / ImageClassification / Embedding / OnnxInference
 
 **待完成:**
-- [ ] **专用交易类型**: 增加 `TransactionType::InferenceTask` (当前复用 ContractCall)
-- [ ] **钱包 SDK 集成**: qfc-sdk-js / qfc-wallet 添加推理任务提交 API
-- [ ] **OpenClaw 推理技能**: qfc-openclaw-skill 添加推理查询功能
+- [x] **专用交易类型**: `TransactionType::InferenceTask = 10` 已定义 (`qfc-types/src/transaction.rs`)，executor 已有处理分支
+- [x] **钱包 SDK 集成 (查询)**: qfc-sdk-js Provider 已有 7 个推理方法 + 8 个类型 (Phase 8)
+- [ ] **钱包推理 UI**: qfc-wallet 添加推理任务提交界面 (未开始)
+- [x] **OpenClaw 推理技能**: `QFCInference` 类已完成 — submitTask/getTaskStatus/waitForResult/getModels/getStats/estimateFee/decodeResult (v3.0.2 修复 payload 对齐)
 
 #### 环节 2: 交易路由到 AI-VM (95%) ✅
 
@@ -379,8 +380,8 @@
 - [x] **模型下载与缓存管理**: `ModelCache` LRU 驱逐 + `ensure_model()` 自动下载 (`qfc-inference/src/model.rs`)
 - [x] **GPU 实时监控**: `GpuMetrics` 温度/功率/利用率采集，支持 NVIDIA/Metal/CPU (`qfc-inference/src/gpu_monitor.rs`)
 
-**待完成:**
-- [ ] **任务并行执行**: 多任务并发处理 (当前 worker 串行循环)
+**暂不实现:**
+- ~~任务并行执行~~: 当前单任务推理仅 40-80ms，瓶颈在 RPC 网络延迟而非推理速度；测试网任务供给有限，串行即可处理；并行涉及 InferenceEngine 共享和显存并发管理，复杂度高。等主网任务量上来后根据实际瓶颈再做。
 
 #### 环节 4: 推理结果验证 (100%) ✅
 
@@ -405,7 +406,7 @@
 - [x] **OpenClaw 推理技能**: `QFCInference` 类 — 查询/等待/解码结果 (B5)
 
 **待完成:**
-- [ ] **大结果处理**: 设计提到 IPFS/Arweave 存储，代码未集成 (>1MB 结果)
+- [x] **大结果处理**: IpfsClient 自动上传 >1MB 结果到 Kubo, `qfc_getInferenceResult(cid)` 网关代理
 
 #### 环节 6: 费用结算 (95%) ✅
 
@@ -445,7 +446,7 @@
 > 环节 5 是用户体验的最后一公里
 
 - [x] B1: 结果编码规范 — JSON envelope + base64 payload + submitter/model/timestamps 元信息
-- [ ] B2: 大结果存储 — 超过 1MB 的结果上传 IPFS，链上存 CID (deferred)
+- [x] B2: 大结果存储 — IpfsClient (Kubo API) 自动上传 >1MB 结果, ResultStorage::Ipfs { cid, size, preview }, RPC 代理 `getInferenceResult(cid)`, SDK/OpenClaw 透明获取
 - [x] B3: 结果推送 — `qfc_subscribeTaskStatus` WebSocket 订阅，自动推送状态变更至终态
 - [x] B4: SDK 集成 — `getPublicTaskStatus()` 结构化返回 + `waitForInferenceResult()` 轮询
 - [x] B5: OpenClaw 推理技能 — `QFCInference` 类: getModels/getStats/getTaskStatus/waitForResult/decode
