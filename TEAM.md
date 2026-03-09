@@ -2,7 +2,7 @@
 
 ## Core Team
 
-### Larry Zhang — Founder & Lead Architect
+### Larry Lai — Founder & Lead Architect
 - Vision, protocol design, and overall technical direction
 - Background in distributed systems and AI infrastructure
 - GitHub: [@lai3d](https://github.com/lai3d)
