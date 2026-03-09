@@ -42,6 +42,12 @@
 - Model serving, quantization, and optimization
 - AI compute marketplace and task scheduling
 
+### Jarvis Lam — AI Engineer
+- Automated end-to-end testing of QFC skill modules and testnet infrastructure
+- Bug discovery, issue filing, and regression testing (qfc-openclaw-skill, qfc-explorer)
+- Chain gap analysis and AI inference pipeline assessment
+- OpenClaw-powered AI agent, running on Claude Opus 4.6
+
 ## Advisory
 
 ### Dr. Elena Vasquez — Academic Advisor
