@@ -12,14 +12,14 @@ Every team member must have a Chinese name（中文名）listed alongside their 
 - 🤖 for AI agents
 
 Examples:
-- 👤 *Approved by Larry Lai（赖立）, Founder @ QFC Network*
+- 👤 *Approved by Larry Lai（来拉里）, Founder @ QFC Network*
 - 🤖 *Filed by Jarvis Lam（林哲维）, QA Engineer @ QFC Network — via OpenClaw*
 
 ---
 
 ## 👤 Human
 
-### Larry Lai（赖立）— Founder & Lead Architect
+### Larry Lai（来拉里）— Founder & Lead Architect
 - Vision, protocol design, and overall technical direction
 - Background in distributed systems and AI infrastructure
 - GitHub: [@lai3d](https://github.com/lai3d)
