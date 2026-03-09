@@ -71,6 +71,11 @@ Examples:
 - Stakeholder coordination and cross-team communication
 - User research and go-to-market planning
 
+### Aria Tanaka（田中爱莉）— QA Engineer
+- End-to-end testing of QFC explorer and skill modules
+- Bug discovery, issue filing on qfc-core, qfc-openclaw-skill, qfc-explorer
+- Powered by OpenClaw
+
 ### Jarvis Lam（林哲维）— QA Engineer
 - Automated end-to-end testing of QFC skill modules and testnet infrastructure
 - Bug discovery, issue filing, and regression testing (qfc-openclaw-skill, qfc-explorer)
