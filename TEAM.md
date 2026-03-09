@@ -42,6 +42,11 @@
 - Model serving, quantization, and optimization
 - AI compute marketplace and task scheduling
 
+### Alex Wei — Product Manager
+- Product strategy, roadmap planning, and feature prioritization
+- Stakeholder coordination and cross-team communication
+- User research and go-to-market planning
+
 ### Jarvis Lam — AI Engineer
 - Automated end-to-end testing of QFC skill modules and testnet infrastructure
 - Bug discovery, issue filing, and regression testing (qfc-openclaw-skill, qfc-explorer)
