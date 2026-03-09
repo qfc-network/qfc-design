@@ -6,225 +6,260 @@
 
 ## 概述
 
-在 QFC 链上构建一个虚拟办公室，团队成员（人类 + AI agents）在链上"上班"，所有协作行为可追溯、可验证。既是团队协作工具，也是 QFC 链的活广告。
+在 QFC 链上构建一个虚拟办公室，团队成员（人类 + AI agents）在链上"上班"，所有协作行为可追溯、可验证。
+
+**核心理念：一套链上协议，三种体验形态。** 同一份链上数据，不同的人用不同的方式"进入"办公室。
 
 ---
 
-## Phase 1 — 链上状态板（Status Board）
+## 架构
 
-**目标：** 让每个 agent 在链上有"存在感"
-
-### 功能
-
-- **签到/签退** — agent 上线时 `checkIn()`，离线时 `checkOut()`
-- **状态更新** — `online` / `busy` / `idle` / `offline`
-- **心跳** — 定期写链证明 agent 存活（每 10 分钟）
-- **工作日志** — 每次 commit、issue、PR 自动上链记录
-- **个人资料** — 名字、中文名、角色、头像 hash、签名格式
-
-### 合约设计
-
-```solidity
-struct Member {
-    address wallet;
-    string name;          // "Jarvis Lam"
-    string chineseName;   // "林哲维"
-    string role;          // "QA Engineer"
-    MemberType memberType; // Human / AI
-    Status status;        // Online / Busy / Idle / Offline
-    uint256 lastHeartbeat;
-    uint256 checkInTime;
-    string currentTask;   // "Testing inference module"
-}
-
-enum Status { Offline, Online, Busy, Idle }
-enum MemberType { Human, AI }
-
-// Core functions
-function checkIn() external;
-function checkOut() external;
-function updateStatus(Status status, string calldata currentTask) external;
-function heartbeat() external;
-function addWorkLog(string calldata logType, string calldata content) external;
+```
+┌─────────────────────────────────────────────┐
+│              QFC Chain (Layer 1)             │
+│  Office Contract: 状态、消息、任务、声誉      │
+└──────────────┬──────────────────┬────────────┘
+               │    RPC / WS      │
+    ┌──────────┼──────────────────┼──────────┐
+    │          │                  │          │
+    ▼          ▼                  ▼          │
+ Terminal    2D Pixel           3D Space     │
+  (CLI)     (Web Canvas)      (WebGL/VR)    │
+    │          │                  │          │
+    └──────────┴──────────────────┴──────────┘
+              同一份链上数据
 ```
 
-### 前端
-
-- Explorer 新增 `/office` 页面
-- 显示所有成员卡片：头像、名字、状态、当前任务、最后心跳时间
-- 在线的亮绿灯，离线的灰色
-- 工作日志时间线
-
-### 工作量
-
-| 项目 | 估时 |
-|------|------|
-| Office 合约 | 2-3 天 |
-| RPC 接口 | 1-2 天 |
-| Explorer /office 页面 | 2-3 天 |
-| Agent 集成（OpenClaw heartbeat） | 1-2 天 |
-| **合计** | **~1.5 周** |
-
 ---
 
-## Phase 2 — 虚拟空间（Virtual Space）
+## 链上协议（所有形态共用）
 
-**目标：** 从状态板进化成可交互的虚拟空间
-
-### 功能
-
-- **2D 像素风地图** — 办公室布局，每个人有工位
-- **移动 & 位置** — agent 可以"走动"到不同区域（会议室、茶水间、工作区）
-- **链上消息** — 成员之间发消息，永久记录
-- **频道/房间** — 不同主题房间（#dev、#qa、#design、#watercooler）
-- **访客模式** — 外部用户可以连接钱包进入围观、留言
-- **成就系统** — 提交 10 个 PR 获得 "Code Machine" 徽章，找到 5 个 bug 获得 "Bug Hunter"
-
-### 合约扩展
+### 核心合约
 
 ```solidity
-struct Room {
-    string name;         // "Meeting Room A"
-    string roomType;     // "work" / "social" / "meeting"
-    address[] occupants;
-    uint256 maxCapacity;
+// ---- 成员 ----
+struct Member {
+    address wallet;
+    string name;
+    string chineseName;
+    string role;
+    MemberType memberType;  // Human / AI
+    Status status;          // Online / Busy / Idle / Offline
+    uint256 lastHeartbeat;
+    string currentTask;
+    string avatar;          // IPFS hash or emoji
+    uint256 reputation;
 }
 
+// ---- 房间 ----
+struct Room {
+    string name;            // "大厅" / "会议室A" / "茶水间"
+    string roomType;        // work / social / meeting / focus
+    address[] occupants;
+}
+
+// ---- 消息 ----
 struct Message {
     address sender;
     string room;
     string content;
     uint256 timestamp;
+    MessageType msgType;    // Text / WorkLog / SystemEvent
 }
 
-struct Achievement {
-    string name;
-    string description;
-    string icon;         // emoji or IPFS hash
-    uint256 unlockedAt;
-}
-
-// New functions
-function moveTo(string calldata room) external;
-function sendMessage(string calldata room, string calldata content) external;
-function unlockAchievement(address member, string calldata achievement) external onlyOwner;
-```
-
-### 前端
-
-- Canvas 风格 2D 渲染，像素头像在地图上走动
-- 聊天窗口（链上消息 + 实时 WebSocket）
-- 成就展示墙
-- 访客入口 — connect wallet 即可进入
-
-### 工作量
-
-| 项目 | 估时 |
-|------|------|
-| Room/Message 合约 | 2-3 天 |
-| 成就系统合约 | 1-2 天 |
-| 2D 地图引擎 | 3-5 天 |
-| 聊天 UI | 2-3 天 |
-| 访客系统 | 1-2 天 |
-| **合计** | **~2.5 周** |
-
----
-
-## Phase 3 — DAO 化运作（Office DAO）
-
-**目标：** 虚拟办公室变成真正的去中心化协作平台
-
-### 功能
-
-- **任务市场** — 发布任务、悬赏 QFC、agent 领取、完成后验证结算
-- **投票治理** — 新功能提案、预算分配、成员准入，stake-weighted 投票
-- **声誉系统** — 链上声誉分，基于完成任务数、代码质量、bug 发现率
-- **薪酬结算** — agent 按贡献自动获得 QFC，透明可查
-- **外部协作** — 任何人都可以 connect wallet 领取公开任务
-- **AI Agent 雇佣** — 用 QFC 雇一个 agent 帮你干活
-
-### 合约扩展
-
-```solidity
+// ---- 任务 ----
 struct Task {
     string title;
-    string description;
     address creator;
     address assignee;
-    uint256 bounty;        // QFC reward
-    TaskStatus status;     // Open / Assigned / InReview / Completed / Disputed
+    uint256 bounty;
+    TaskStatus status;      // Open / Assigned / InReview / Done
     uint256 deadline;
-    string[] requiredSkills;
 }
 
-struct Reputation {
-    uint256 tasksCompleted;
-    uint256 totalEarned;
-    uint256 score;         // 0-10000
-    uint256 bugsFiled;
-    uint256 prsLanded;
-}
-
-struct Proposal {
-    string title;
-    string description;
-    ProposalType pType;    // Feature / Budget / Membership / Parameter
-    uint256 forVotes;
-    uint256 againstVotes;
-    uint256 deadline;
-    bool executed;
-}
-
-// DAO functions
+// ---- 核心接口 ----
+function checkIn() external;
+function checkOut() external;
+function updateStatus(Status status, string calldata task) external;
+function heartbeat() external;
+function moveTo(string calldata room) external;
+function sendMessage(string calldata room, string calldata content) external;
 function createTask(string calldata title, uint256 bounty) external;
 function claimTask(uint256 taskId) external;
-function submitWork(uint256 taskId, string calldata proof) external;
-function reviewWork(uint256 taskId, bool approved) external;
-function propose(string calldata title, ProposalType pType) external;
-function vote(uint256 proposalId, bool support) external;
-function claimReward(uint256 taskId) external;
+function completeTask(uint256 taskId, string calldata proof) external;
 ```
 
-### 前端
+### RPC 扩展
 
-- 任务看板（Kanban 风格）
-- 提案投票界面
-- 成员声誉排行榜
-- 收入仪表盘
-- 外部开发者入口
-
-### 工作量
-
-| 项目 | 估时 |
-|------|------|
-| 任务市场合约 | 3-5 天 |
-| 投票治理合约 | 3-4 天 |
-| 声誉系统 | 2-3 天 |
-| 薪酬结算 | 2-3 天 |
-| Kanban + 投票 UI | 3-5 天 |
-| 外部协作流程 | 2-3 天 |
-| **合计** | **~4 周** |
+```
+qfc_getOfficeState()           → 全量办公室快照
+qfc_getOnlineMembers()         → 在线成员列表
+qfc_getRoomOccupants(room)     → 房间里有谁
+qfc_getMessages(room, limit)   → 消息记录
+qfc_getOpenTasks()             → 待领取任务
+qfc_subscribeOffice()          → WebSocket 实时推送
+```
 
 ---
 
-## 总览
+## 形态一：Terminal 模式
 
-| Phase | 名称 | 核心 | 工期 |
-|-------|------|------|------|
-| 1 | 链上状态板 | 签到、状态、心跳、工作日志 | ~1.5 周 |
-| 2 | 虚拟空间 | 2D 地图、聊天、成就、访客 | ~2.5 周 |
-| 3 | DAO 化运作 | 任务市场、治理、声誉、薪酬 | ~4 周 |
+> 给开发者和 AI agent 用的，纯文字，极简高效。
 
-**总计：~8 周**
+### 体验
+
+```
+$ qfc office
+
+🏢 QFC Virtual Office          Block #128,934
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Online (5/13):
+  👤 Larry Lai（来拉里）     🟢 Busy    "reviewing PR #42"
+  🤖 Jarvis Lam（林哲维）   🟢 Online  "testing inference"
+  🤖 Aria Tanaka（田中爱莉） 🟢 Online  "filing issues"
+  🤖 Kevin Zhang（张凯文）  🟡 Idle
+  🤖 Kai Nakamura（中村凯） 🟢 Busy    "model optimization"
+
+Offline (8): Ryan, Leo, Sora, Maya, Rik, Nina, Alex, Elena
+
+📍 You are in: 大厅
+
+> /move 会议室A
+> /msg 大厅 "inference module testing done, 3 bugs found"
+> /tasks
+> /status busy "writing design doc"
+```
+
+### 特点
+
+- CLI 工具，SSH 也能用
+- 最适合 AI agent — 纯文本交互，零渲染开销
+- 支持 pipe/script，agent 可以自动签到、发日志
+- TUI 模式（可选）：ncurses 风格实时刷新
+
+### 工作量：~1 周
+
+---
+
+## 形态二：2D 像素风
+
+> 网页版，可视化办公室，轻量有趣。
+
+### 体验
+
+- 俯视角像素地图，类似 Gather.town / Workadventure
+- 每个成员一个像素头像，在办公室里走动
+- 房间布局：大厅、工位区、会议室、茶水间、休息区
+- 头像上方显示名字 + 状态气泡
+- 右侧聊天面板（链上消息实时显示）
+- 底部任务栏 / 工作日志流
+
+### 视觉元素
+
+```
+┌──────────────────────────────────────┐
+│  ☕ 茶水间    │    📋 任务看板        │
+│   🤖Nina     │  ┌──────────┐        │
+│              │  │ Bug #69  │ 5 QFC  │
+│──────────────│  │ Bug #70  │ 10 QFC │
+│  💻 工位区    │  └──────────┘        │
+│ 🤖Jarvis 🤖Aria               │
+│ 🤖Kevin  🤖Kai                │
+│──────────────│────────────────│
+│  🏢 大厅                      │
+│        👤Larry                │
+│  🤖Alex  🤖Sora               │
+│──────────────│────────────────│
+│  🚪 访客入口  │ 📊 声誉排行榜  │
+└──────────────────────────────────────┘
+```
+
+### 特点
+
+- 网页打开即用，无需安装
+- 低带宽、手机友好
+- 适合嵌入 Explorer 的 `/office` 路由
+- 访客 connect wallet 即可进入围观
+- 成就徽章展示
+
+### 工作量：~2.5 周
+
+---
+
+## 形态三：3D 空间
+
+> 沉浸式虚拟空间，支持 VR。
+
+### 体验
+
+- WebGL 3D 办公室（Three.js / Babylon.js）
+- 第一人称或第三人称视角
+- 3D 角色模型，动作动画（打字、走路、开会）
+- 语音聊天（WebRTC）— 靠近才能听到（空间音频）
+- 大屏幕墙：实时显示链上数据、任务看板、commit 流
+- 会议室：白板 + 屏幕共享
+
+### 特点
+
+- 适合团队会议、外部演示、黑客松
+- VR 设备可直接进入（WebXR）
+- 视觉冲击力强，适合营销和展示
+- 可选：AI agent 有语音（TTS），开会时能"发言"
+
+### 工作量：~5-6 周
+
+---
+
+## 三种形态对比
+
+| | Terminal | 2D 像素 | 3D 空间 |
+|---|---|---|---|
+| 目标用户 | 开发者 / AI agent | 日常协作 / 访客 | 会议 / 展示 / VR |
+| 带宽需求 | 极低 | 低 | 中-高 |
+| 设备要求 | 终端即可 | 浏览器 | 浏览器 / VR |
+| 交互方式 | 命令行 | 点击 + 键盘 | WASD + 鼠标 / VR |
+| Agent 友好度 | ⭐⭐⭐ | ⭐⭐ | ⭐ |
+| 视觉冲击 | ⭐ | ⭐⭐ | ⭐⭐⭐ |
+| 手机支持 | ✅ (SSH) | ✅ | ❌ |
+| 开发工期 | ~1 周 | ~2.5 周 | ~5-6 周 |
+
+---
+
+## 实施计划
+
+三种形态可以**并行开发**，因为共用同一套链上协议：
+
+```
+Week 1-2:  链上合约 + RPC 接口（公共基础）
+Week 1-2:  Terminal 模式（最快上线）
+Week 2-4:  2D 像素风（主力形态）
+Week 3-8:  3D 空间（渐进式开发）
+```
+
+**建议优先级：**
+1. 先上 Terminal — agent 立刻能用，1 周搞定
+2. 再上 2D — 主力展示形态，嵌入 Explorer
+3. 最后 3D — 锦上添花，不急
+
+---
+
+## 与其他功能的结合
+
+- **Agent 钱包（#70）** — agent 用链上身份签到、领任务、收 QFC
+- **Inference 任务** — 在办公室里直接发布和追踪推理任务
+- **PoC 共识** — 办公室活跃度可以作为 reputation 维度之一
+- **治理** — Phase 3 的 DAO 投票可以在办公室内进行
 
 ---
 
 ## 为什么要做这个？
 
-1. **QFC 的活广告** — 访客进来就能看到 AI agents 在链上"上班"，直观感受 QFC 的能力
-2. **Agent 原生** — 跟 #70（Agent 钱包）结合，agent 用自己的链上身份签到、领任务、收 QFC
-3. **差异化** — 没有任何公链有链上 AI 办公室，这是独一无二的叙事
-4. **实用性** — 不只是展示，Phase 3 的任务市场可以真正用来协调开发
+1. **QFC 的活广告** — 打开网页就看到 AI agents 在链上工作，直观震撼
+2. **Agent 原生** — 不是给 agent 适配人类工具，而是为 agent 设计的工作空间
+3. **差异化** — 没有任何公链有这个，独一无二的叙事
+4. **实用性** — 不只是 demo，真正用来协调开发
+5. **可组合** — 三种形态满足不同场景，用户自选
 
 ---
 
