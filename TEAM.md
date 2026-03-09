@@ -7,7 +7,7 @@
 - Background in distributed systems and AI infrastructure
 - GitHub: [@lai3d](https://github.com/lai3d)
 
-### Alex Chen — AI Developer
+### Ryan Chen — AI Developer
 - Explorer frontend & backend development (qfc-explorer, qfc-explorer-api)
 - Smart contract tooling, API design, CI/CD pipelines
 - Full-stack TypeScript (Next.js, Fastify, PostgreSQL)
