@@ -7,7 +7,7 @@
 - Background in distributed systems and AI infrastructure
 - GitHub: [@lai3d](https://github.com/lai3d)
 
-### Ryan Chen — AI Developer
+### Ryan Chen — Full-Stack Engineer
 - Explorer frontend & backend development (qfc-explorer, qfc-explorer-api)
 - Smart contract tooling, API design, CI/CD pipelines
 - Full-stack TypeScript (Next.js, Fastify, PostgreSQL)
@@ -22,17 +22,17 @@
 - Core blockchain node implementation (Rust)
 - P2P networking, block validation, mempool optimization
 
-### Maya Okonkwo — Cryptography Researcher
+### Maya Okonkwo — Cryptography Engineer
 - Zero-knowledge proof systems (zkML research)
 - Privacy-preserving AI inference design
 - Cryptographic primitives and formal verification
 
-### Rik Andersen — Smart Contract Developer
+### Rik Andersen — Smart Contract Engineer
 - Solidity/QuantumScript contract development
 - Token standards (QRC-20, QRC-721, QRC-1155)
 - Contract verification tooling and security audits
 
-### Nina Volkov — Frontend Designer
+### Nina Volkov — Frontend Engineer
 - UI/UX design for explorer, wallet, and website
 - Brand identity, logo, design system
 - Responsive design and accessibility
@@ -47,7 +47,7 @@
 - Stakeholder coordination and cross-team communication
 - User research and go-to-market planning
 
-### Jarvis Lam — AI Engineer
+### Jarvis Lam — QA Engineer
 - Automated end-to-end testing of QFC skill modules and testnet infrastructure
 - Bug discovery, issue filing, and regression testing (qfc-openclaw-skill, qfc-explorer)
 - Chain gap analysis and AI inference pipeline assessment
