@@ -17,6 +17,11 @@
 - Monitoring, Prometheus/Grafana, Traefik configuration
 - Incident response and operational stability
 
+### Kevin Zhang — Lead Core Engineer
+- qfc-core lead: blockchain engine, miner subsystem, RPC endpoints
+- Per-miner earnings ledger, TUI dashboard, inference proof pipeline
+- Rust, RocksDB, libp2p
+
 ### Sora Tanaka — Protocol Engineer
 - Consensus mechanism (PoW + Inference Proof)
 - Core blockchain node implementation (Rust)
