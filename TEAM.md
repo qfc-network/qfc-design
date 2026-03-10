@@ -41,11 +41,6 @@ Examples:
 - Per-miner earnings ledger, TUI dashboard, inference proof pipeline
 - Rust, RocksDB, libp2p
 
-### Sora Tanaka（田中空）— Protocol Engineer
-- Consensus mechanism (PoW + Inference Proof)
-- Core blockchain node implementation (Rust)
-- P2P networking, block validation, mempool optimization
-
 ### Maya Okonkwo（欧玛雅）— Cryptography Engineer
 - Zero-knowledge proof systems (zkML research)
 - Privacy-preserving AI inference design
