@@ -1028,10 +1028,10 @@ To Be Completed:
 - [x] A7: Frontend UI (`qfc-defi/src/app/privacy/page.tsx`) — Deposit/withdraw, denomination selector, proof status
 - [x] A8: SDK (`qfc-defi/src/lib/shieldedPool.ts`) — Note generation/serialization, relayer client
 - [x] E2E test: deposit → Poseidon commitment → Merkle insert → off-chain Groth16 proof → on-chain verify → withdraw
+- [x] A9: Browser-side ZK proof generation (`qfc-defi/src/lib/zkProver.ts`) — Dynamic snarkjs loading, supports both standard and compliance circuits
 - [ ] Launch checklist:
   - [ ] Formal trusted setup ceremony (multi-party)
   - [ ] Relayer deployment + gas funding
-  - [ ] Frontend snarkjs WASM integration (browser-side proof generation)
   - [ ] ZK circuit + contract audit
 
 #### Phase B: Stealth Address (EIP-5564) ✅ Complete
@@ -1042,8 +1042,8 @@ To Be Completed:
 - [x] B2: `generateStealthAddress()` — Sender generates one-time stealth address
 - [x] B3: `announceTransfer()` — Publish ephemeral pubkey + viewTag for recipient scanning
 - [x] B4: `scanByViewTag()` — viewTag filtering + paginated announcement queries
-- [ ] B5: SDK integration (generate/scan/claim) — Frontend integration pending
-- [ ] B6: Wallet "private receive" mode — Pending
+- [x] B5: SDK integration (`qfc-defi/src/lib/stealthAddress.ts`) — Key generation/serialization, stealth address computation, viewTag scanning, contract helpers
+- [x] B6: Wallet "private receive" page (`qfc-defi/src/app/stealth/page.tsx`) — Setup Receive / Send Privately / Scan Incoming tabs
 
 #### Phase C: Compliance Proof (Privacy Pools Extension) ✅ Complete
 
@@ -1058,7 +1058,9 @@ To Be Completed:
   - [x] Root consistency validation, duplicate prevention
 - [x] C3: DeFi integration interface — `meetsComplianceLevel(nullifierHash, minLevel)`
   - [x] Protocols can query withdrawal compliance level to gate access
-- [ ] C4: Extended ZK circuit — embed compliance proof in Groth16 circuit (currently off-chain, pending integration)
+- [x] C4: `withdrawCompliant.circom` — Extended ZK circuit (10,517 constraints), proves both pool membership + association set membership
+  - [x] `ComplianceGroth16Verifier.sol` — On-chain verifier (5 public inputs)
+  - [x] WASM + zkey generated, ready for browser-side proving
 
 ---
 

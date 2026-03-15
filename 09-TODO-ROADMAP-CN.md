@@ -1028,10 +1028,10 @@ v2.0 AI 计算网络 (✅ 全部完成):
 - [x] A7: 前端 UI (`qfc-defi/src/app/privacy/page.tsx`) — 存款/提取, 面额选择, proof 状态
 - [x] A8: SDK (`qfc-defi/src/lib/shieldedPool.ts`) — note 生成/序列化, relayer 客户端
 - [x] E2E 测试: 存款→Poseidon commitment→Merkle insert→离线 Groth16 proof→链上验证→提款
+- [x] A9: 浏览器端 ZK proof 生成 (`qfc-defi/src/lib/zkProver.ts`) — snarkjs 动态加载, 支持标准/合规两种电路
 - [ ] 上线 checklist:
   - [ ] 正式 Trusted Setup 仪式 (多方参与)
   - [ ] Relayer 部署 + 充 gas
-  - [ ] 前端集成 snarkjs WASM (浏览器端 proof 生成)
   - [ ] 审计 ZK 电路 + 合约
 
 #### Phase B: Stealth Address (EIP-5564) ✅ 已完成
@@ -1042,8 +1042,8 @@ v2.0 AI 计算网络 (✅ 全部完成):
 - [x] B2: `generateStealthAddress()` — 发送方生成一次性 stealth 地址
 - [x] B3: `announceTransfer()` — 发布 ephemeral pubkey + viewTag 供收款方扫描
 - [x] B4: `scanByViewTag()` — viewTag 过滤 + 分页查询 announcements
-- [ ] B5: SDK 集成 (生成/扫描/领取) — 前端集成待完成
-- [ ] B6: 钱包"隐私收款"模式 — 待完成
+- [x] B5: SDK 集成 (`qfc-defi/src/lib/stealthAddress.ts`) — 密钥生成/序列化, stealth 地址计算, viewTag 扫描, 合约交互
+- [x] B6: 钱包"隐私收款"页面 (`qfc-defi/src/app/stealth/page.tsx`) — 注册/发送/扫描三个 Tab
 
 #### Phase C: 合规证明 (Privacy Pools 扩展) ✅ 已完成
 
@@ -1058,7 +1058,9 @@ v2.0 AI 计算网络 (✅ 全部完成):
   - [x] Root 一致性验证, 防重复提交
 - [x] C3: DeFi 集成接口 — `meetsComplianceLevel(nullifierHash, minLevel)`
   - [x] 协议可查询提款的合规等级, 决定是否允许参与
-- [ ] C4: 扩展 ZK 电路 — 将合规证明嵌入 Groth16 电路 (目前链下验证, 待集成)
+- [x] C4: `withdrawCompliant.circom` — 扩展 ZK 电路 (10,517 constraints), 同时证明 pool membership + association set membership
+  - [x] `ComplianceGroth16Verifier.sol` — 链上验证器 (5 public inputs)
+  - [x] WASM + zkey 生成, 可用于浏览器端 proof
 
 ---
 
