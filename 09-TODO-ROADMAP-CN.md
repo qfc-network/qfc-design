@@ -1045,14 +1045,20 @@ v2.0 AI 计算网络 (✅ 全部完成):
 - [ ] B5: SDK 集成 (生成/扫描/领取) — 前端集成待完成
 - [ ] B6: 钱包"隐私收款"模式 — 待完成
 
-#### Phase C: 合规证明 (Privacy Pools 扩展) 🟢 P2
+#### Phase C: 合规证明 (Privacy Pools 扩展) ✅ 已完成
 
 > [#57](https://github.com/qfc-network/qfc-contracts/issues/57) — 隐私+合规的平衡点
 
-- [ ] C1: Association Set 管理 (合规地址集合, DAO 投票维护)
-- [ ] C2: 扩展 ZK 电路 — inclusion/exclusion proof
-- [ ] C3: `ComplianceVerifier.sol` — 合规等级验证
-- [ ] C4: DeFi 集成 (部分协议可选要求合规证明)
+- [x] C1: `AssociationSet.sol` — DAO 治理的地址集合注册表
+  - [x] Inclusion 集合 (KYC 合规地址) + Exclusion 集合 (制裁地址)
+  - [x] Curator 角色管理, Poseidon Merkle root 存储
+  - [x] 激活/停用, 按类型查询
+- [x] C2: `ComplianceVerifier.sol` — 三级合规验证
+  - [x] None (无证明) / Basic (inclusion proof) / Full (inclusion + exclusion)
+  - [x] Root 一致性验证, 防重复提交
+- [x] C3: DeFi 集成接口 — `meetsComplianceLevel(nullifierHash, minLevel)`
+  - [x] 协议可查询提款的合规等级, 决定是否允许参与
+- [ ] C4: 扩展 ZK 电路 — 将合规证明嵌入 Groth16 电路 (目前链下验证, 待集成)
 
 ---
 
