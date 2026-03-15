@@ -934,9 +934,9 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── Phase B: Stealth Address (EIP-5564, 一次性收款地址, 扫描)
 └── Phase C: 合规证明 (Association Set, inclusion/exclusion proof)
 
-待完善:
-├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
-└── CI/CD 流水线 (GitHub Actions 自动部署)
+✅ 已完善:
+├── ✅ 钱包高级功能 (Ledger/Trezor, WalletConnect v2, NFT Gallery)
+└── ✅ CI/CD 流水线 (qfc-contracts: compile+test+lint+docker, qfc-wallet: lint+typecheck+test+build)
 ```
 
 ---

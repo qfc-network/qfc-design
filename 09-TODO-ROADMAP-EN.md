@@ -934,9 +934,9 @@ Completed Infrastructure:
 ├── Phase B: Stealth Address (EIP-5564, one-time receive addresses, scanning)
 └── Phase C: Compliance Proof (Association Set, inclusion/exclusion proof)
 
-To Be Completed:
-├── Wallet Advanced Features (hardware wallet, WalletConnect, NFT)
-└── CI/CD Pipeline (GitHub Actions automated deployment)
+✅ Completed:
+├── ✅ Wallet Advanced Features (Ledger/Trezor, WalletConnect v2, NFT Gallery)
+└── ✅ CI/CD Pipeline (qfc-contracts: compile+test+lint+docker, qfc-wallet: lint+typecheck+test+build)
 ```
 
 ---
