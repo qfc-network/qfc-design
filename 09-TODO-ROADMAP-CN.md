@@ -922,10 +922,79 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ Phase D: 高级过滤 (交易过滤/Approval 管理/标签分类/批量查询)
 └── ✅ Phase E: 社区生态 (评论评分/DeFi 识别/地址画像/Sankey/多签检测)
 
+🔵 QUSD 稳定币完善 (§15):
+├── Phase A: 去中心化预言机 (多源聚合, TWAP, 断路器)
+├── Phase B: 全局结算与紧急关停 (多签触发, 分级暂停, 赎回)
+├── Phase C: PSM 锚定稳定模块 (USDC/USDT 1:1 兑换)
+├── Phase D: 多资产抵押 (ETH/BTC/wstETH, CollateralManager)
+└── Phase E: DAO 治理 (稳定费/抵押率参数治理, Timelock)
+
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
 └── CI/CD 流水线 (GitHub Actions 自动部署)
 ```
+
+---
+
+### 15. QUSD 稳定币完善路线图
+
+> 目标: 将现有 CDP 模型的 QUSD 稳定币从 MVP 升级为生产就绪，增强锚定稳定性、安全性和去中心化程度
+
+**GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
+
+**现有基础**: QUSDToken + CDPVault + PriceFeed + Liquidator (已实现，150% 抵押率，2% 稳定费)
+
+#### Phase A: 去中心化预言机 🔴 P0
+
+> [#50](https://github.com/qfc-network/qfc-contracts/issues/50) — 当前中心化 PriceFeed 是最大单点故障
+
+- [ ] A1: 多数据源聚合 (Chainlink / Pyth / 自建节点)
+- [ ] A2: 价格偏差检测 (>5% 偏差触发断路器)
+- [ ] A3: TWAP 时间加权平均价格计算
+- [ ] A4: 心跳检查 (价格过期自动暂停铸造)
+- [ ] A5: 多签/DAO 紧急价格覆写
+- [ ] A6: 价格历史存储 (链上最近 N 轮)
+
+#### Phase B: 全局结算与紧急关停 🔴 P0
+
+> [#54](https://github.com/qfc-network/qfc-contracts/issues/54) — 安全关键，黑天鹅事件保护
+
+- [ ] B1: `EmergencyShutdown.sol` — 多签触发关停 (≥3/5)
+- [ ] B2: 关停后冻结 CDP 操作，允许按比例赎回
+- [ ] B3: 全局结算流程 (快照→清算价→QUSD 兑换→剩余退还)
+- [ ] B4: 分级暂停 (L1 暂停铸造 / L2 暂停全部 / L3 全局结算)
+- [ ] B5: L1-L2 DAO 投票恢复机制
+
+#### Phase C: PSM 锚定稳定模块 🟡 P1
+
+> [#52](https://github.com/qfc-network/qfc-contracts/issues/52) — 增强脱锚防御
+
+- [ ] C1: `PSM.sol` — USDC/USDT ↔ QUSD 1:1 兑换
+- [ ] C2: 可配置手续费 (tin/tout)
+- [ ] C3: 单资产债务上限
+- [ ] C4: 储备金审计接口
+- [ ] C5: 紧急暂停开关
+
+#### Phase D: 多资产抵押 🟡 P1
+
+> [#51](https://github.com/qfc-network/qfc-contracts/issues/51) — 扩大铸造规模
+
+- [ ] D1: `CollateralManager.sol` — 管理多种抵押品类型
+- [ ] D2: 每种资产独立抵押率/清算阈值
+- [ ] D3: Wrapped 资产支持 (wBTC, wETH)
+- [ ] D4: LST 生息资产支持 (wstETH, rETH)
+- [ ] D5: 全局 + 单资产债务上限
+- [ ] D6: 抵押品风险参数治理接口
+
+#### Phase E: DAO 治理 🟢 P2
+
+> [#53](https://github.com/qfc-network/qfc-contracts/issues/53) — 去中心化参数管理
+
+- [ ] E1: `QUSDGovernance.sol` — 参数治理合约
+- [ ] E2: 可治理: 稳定费、抵押率、清算阈值、债务上限、PSM 费率
+- [ ] E3: Timelock 延迟执行
+- [ ] E4: 参数变更范围限制 (±20%)
+- [ ] E5: 与 QFCGovernor + Treasury 集成
 
 ---
 

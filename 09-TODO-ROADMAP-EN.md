@@ -922,10 +922,79 @@ Completed Infrastructure:
 ├── ✅ Phase D: Advanced Filtering (transaction filters/Approval management/label classification/batch query)
 └── ✅ Phase E: Community Ecosystem (comments & ratings/DeFi identification/address profile/Sankey/multi-sig detection)
 
+🔵 QUSD Stablecoin Enhancement (§15):
+├── Phase A: Decentralized Oracle (multi-source aggregation, TWAP, circuit breaker)
+├── Phase B: Emergency Shutdown & Global Settlement (multi-sig trigger, tiered pause, redemption)
+├── Phase C: PSM Peg Stability Module (USDC/USDT 1:1 swap)
+├── Phase D: Multi-Collateral Support (ETH/BTC/wstETH, CollateralManager)
+└── Phase E: DAO Governance (stability fee/collateral ratio governance, Timelock)
+
 To Be Completed:
 ├── Wallet Advanced Features (hardware wallet, WalletConnect, NFT)
 └── CI/CD Pipeline (GitHub Actions automated deployment)
 ```
+
+---
+
+### 15. QUSD Stablecoin Enhancement Roadmap
+
+> Goal: Upgrade the existing CDP-based QUSD stablecoin from MVP to production-ready, enhancing peg stability, security, and decentralization
+
+**GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
+
+**Existing Foundation**: QUSDToken + CDPVault + PriceFeed + Liquidator (implemented, 150% collateral ratio, 2% stability fee)
+
+#### Phase A: Decentralized Oracle 🔴 P0
+
+> [#50](https://github.com/qfc-network/qfc-contracts/issues/50) — Current centralized PriceFeed is the biggest single point of failure
+
+- [ ] A1: Multi-source aggregation (Chainlink / Pyth / self-hosted nodes)
+- [ ] A2: Price deviation detection (>5% deviation triggers circuit breaker)
+- [ ] A3: TWAP (Time-Weighted Average Price) calculation
+- [ ] A4: Heartbeat check (stale price auto-pauses minting)
+- [ ] A5: Multi-sig/DAO emergency price override
+- [ ] A6: On-chain price history storage (last N rounds)
+
+#### Phase B: Emergency Shutdown & Global Settlement 🔴 P0
+
+> [#54](https://github.com/qfc-network/qfc-contracts/issues/54) — Security critical, black swan protection
+
+- [ ] B1: `EmergencyShutdown.sol` — Multi-sig triggered shutdown (≥3/5)
+- [ ] B2: Freeze all CDP operations post-shutdown, allow pro-rata redemption
+- [ ] B3: Global settlement flow (snapshot → liquidation price → QUSD exchange → surplus return)
+- [ ] B4: Tiered pause (L1 pause minting / L2 pause all / L3 global settlement)
+- [ ] B5: L1-L2 DAO vote recovery mechanism
+
+#### Phase C: PSM Peg Stability Module 🟡 P1
+
+> [#52](https://github.com/qfc-network/qfc-contracts/issues/52) — Strengthen de-peg defense
+
+- [ ] C1: `PSM.sol` — USDC/USDT ↔ QUSD 1:1 swap
+- [ ] C2: Configurable fees (tin/tout)
+- [ ] C3: Per-asset debt ceiling
+- [ ] C4: Reserve audit interface
+- [ ] C5: Emergency pause switch
+
+#### Phase D: Multi-Collateral Support 🟡 P1
+
+> [#51](https://github.com/qfc-network/qfc-contracts/issues/51) — Scale minting capacity
+
+- [ ] D1: `CollateralManager.sol` — Manage multiple collateral types
+- [ ] D2: Per-asset collateral ratio / liquidation threshold
+- [ ] D3: Wrapped asset support (wBTC, wETH)
+- [ ] D4: LST yield-bearing asset support (wstETH, rETH)
+- [ ] D5: Global + per-asset debt ceiling
+- [ ] D6: Collateral risk parameter governance interface
+
+#### Phase E: DAO Governance 🟢 P2
+
+> [#53](https://github.com/qfc-network/qfc-contracts/issues/53) — Decentralized parameter management
+
+- [ ] E1: `QUSDGovernance.sol` — Parameter governance contract
+- [ ] E2: Governable: stability fee, collateral ratio, liquidation threshold, debt ceiling, PSM fees
+- [ ] E3: Timelock delayed execution
+- [ ] E4: Parameter change range limit (±20%)
+- [ ] E5: Integration with QFCGovernor + Treasury
 
 ---
 
