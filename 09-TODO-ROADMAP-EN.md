@@ -929,6 +929,11 @@ Completed Infrastructure:
 ├── Phase D: Multi-Collateral Support (ETH/BTC/wstETH, CollateralManager)
 └── Phase E: DAO Governance (stability fee/collateral ratio governance, Timelock)
 
+🟣 qUSD Privacy Layer (§16):
+├── Phase A: Privacy Pool (ShieldedPool, ZK proof, Merkle tree, multi-denomination)
+├── Phase B: Stealth Address (EIP-5564, one-time receive addresses, scanning)
+└── Phase C: Compliance Proof (Association Set, inclusion/exclusion proof)
+
 To Be Completed:
 ├── Wallet Advanced Features (hardware wallet, WalletConnect, NFT)
 └── CI/CD Pipeline (GitHub Actions automated deployment)
@@ -995,6 +1000,46 @@ To Be Completed:
 - [ ] E3: Timelock delayed execution
 - [ ] E4: Parameter change range limit (±20%)
 - [ ] E5: Integration with QFCGovernor + Treasury
+
+---
+
+### 16. qUSD Privacy Layer Roadmap
+
+> Goal: Add on-chain privacy protection for qUSD to address user concerns about transaction traceability. Combines Privacy Pools + Stealth Addresses to protect privacy while supporting compliance proofs.
+
+**GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
+
+**Motivation**: qUSD has no USDT-style blacklist/freeze, but on-chain transfers are fully transparent — anyone can trace fund flows.
+
+#### Phase A: Privacy Pool (ShieldedPool) 🔴 P0
+
+> [#55](https://github.com/qfc-network/qfc-contracts/issues/55) — Core privacy feature, break on-chain fund linkability
+
+- [ ] A1: `ShieldedPool.sol` — Fixed-denomination deposit/withdraw (100/1K/10K/100K qUSD)
+- [ ] A2: Commitment Merkle tree (Incremental Merkle Tree, 20 levels)
+- [ ] A3: Nullifier replay protection
+- [ ] A4: ZK circuit (Groth16) — prove "I know the secret of a commitment in the tree"
+- [ ] A5: `Verifier.sol` — On-chain ZK proof verification
+- [ ] A6: Relayer support (withdraw from new address without gas)
+
+#### Phase B: Stealth Address (EIP-5564) 🟡 P1
+
+> [#56](https://github.com/qfc-network/qfc-contracts/issues/56) — Private receiving, prevent linking multiple receipts
+
+- [ ] B1: `StealthAddressRegistry.sol` — Stealth meta-address registration
+- [ ] B2: `generateStealthAddress()` — Sender generates one-time address
+- [ ] B3: `announceTransfer()` — Publish ephemeral pubkey for recipient scanning
+- [ ] B4: SDK integration (generate/scan/claim)
+- [ ] B5: Wallet "private receive" mode
+
+#### Phase C: Compliance Proof (Privacy Pools Extension) 🟢 P2
+
+> [#57](https://github.com/qfc-network/qfc-contracts/issues/57) — Balance privacy and compliance
+
+- [ ] C1: Association Set management (compliant address set, DAO-governed)
+- [ ] C2: Extended ZK circuit — inclusion/exclusion proof
+- [ ] C3: `ComplianceVerifier.sol` — Compliance level verification
+- [ ] C4: DeFi integration (optional compliance proof requirement)
 
 ---
 

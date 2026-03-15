@@ -929,6 +929,11 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── Phase D: 多资产抵押 (ETH/BTC/wstETH, CollateralManager)
 └── Phase E: DAO 治理 (稳定费/抵押率参数治理, Timelock)
 
+🟣 qUSD 隐私层 (§16):
+├── Phase A: Privacy Pool (ShieldedPool, ZK proof, Merkle tree, 多面额)
+├── Phase B: Stealth Address (EIP-5564, 一次性收款地址, 扫描)
+└── Phase C: 合规证明 (Association Set, inclusion/exclusion proof)
+
 待完善:
 ├── 钱包高级功能 (硬件钱包、WalletConnect、NFT)
 └── CI/CD 流水线 (GitHub Actions 自动部署)
@@ -995,6 +1000,46 @@ v2.0 AI 计算网络 (✅ 全部完成):
 - [ ] E3: Timelock 延迟执行
 - [ ] E4: 参数变更范围限制 (±20%)
 - [ ] E5: 与 QFCGovernor + Treasury 集成
+
+---
+
+### 16. qUSD 隐私层路线图
+
+> 目标: 为 qUSD 添加链上隐私保护，解决用户被追踪的顾虑。采用 Privacy Pools + Stealth Address 组合，在保护隐私的同时支持合规证明。
+
+**GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
+
+**动机**: qUSD 没有 USDT 式的 blacklist/freeze 功能，但链上转账完全透明，资金流向可被任何人追踪。
+
+#### Phase A: Privacy Pool (ShieldedPool) 🔴 P0
+
+> [#55](https://github.com/qfc-network/qfc-contracts/issues/55) — 核心隐私功能，断开链上资金链路
+
+- [ ] A1: `ShieldedPool.sol` — 固定面额存款/提取 (100/1K/10K/100K qUSD)
+- [ ] A2: Commitment Merkle tree (Incremental Merkle Tree, 20 层)
+- [ ] A3: Nullifier 防重放机制
+- [ ] A4: ZK 电路 (Groth16) — 证明 "知道 tree 中某 commitment 的 secret"
+- [ ] A5: `Verifier.sol` — 链上 ZK proof 验证
+- [ ] A6: Relayer 支持 (新地址无 gas 也能提取)
+
+#### Phase B: Stealth Address (EIP-5564) 🟡 P1
+
+> [#56](https://github.com/qfc-network/qfc-contracts/issues/56) — 隐私收款，防止多笔收款被关联
+
+- [ ] B1: `StealthAddressRegistry.sol` — stealth meta-address 注册
+- [ ] B2: `generateStealthAddress()` — 发送方生成一次性地址
+- [ ] B3: `announceTransfer()` — 发布 ephemeral pubkey 供收款方扫描
+- [ ] B4: SDK 集成 (生成/扫描/领取)
+- [ ] B5: 钱包"隐私收款"模式
+
+#### Phase C: 合规证明 (Privacy Pools 扩展) 🟢 P2
+
+> [#57](https://github.com/qfc-network/qfc-contracts/issues/57) — 隐私+合规的平衡点
+
+- [ ] C1: Association Set 管理 (合规地址集合, DAO 投票维护)
+- [ ] C2: 扩展 ZK 电路 — inclusion/exclusion proof
+- [ ] C3: `ComplianceVerifier.sol` — 合规等级验证
+- [ ] C4: DeFi 集成 (部分协议可选要求合规证明)
 
 ---
 
