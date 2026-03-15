@@ -922,7 +922,7 @@ Completed Infrastructure:
 ├── ✅ Phase D: Advanced Filtering (transaction filters/Approval management/label classification/batch query)
 └── ✅ Phase E: Community Ecosystem (comments & ratings/DeFi identification/address profile/Sankey/multi-sig detection)
 
-🔵 QUSD Stablecoin Enhancement (§15):
+🔵 qUSD Stablecoin Enhancement (§15):
 ├── Phase A: Decentralized Oracle (multi-source aggregation, TWAP, circuit breaker)
 ├── Phase B: Emergency Shutdown & Global Settlement (multi-sig trigger, tiered pause, redemption)
 ├── Phase C: PSM Peg Stability Module (USDC/USDT 1:1 swap)
@@ -936,13 +936,13 @@ To Be Completed:
 
 ---
 
-### 15. QUSD Stablecoin Enhancement Roadmap
+### 15. qUSD Stablecoin Enhancement Roadmap
 
-> Goal: Upgrade the existing CDP-based QUSD stablecoin from MVP to production-ready, enhancing peg stability, security, and decentralization
+> Goal: Upgrade the existing CDP-based qUSD stablecoin from MVP to production-ready, enhancing peg stability, security, and decentralization
 
 **GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
 
-**Existing Foundation**: QUSDToken + CDPVault + PriceFeed + Liquidator (implemented, 150% collateral ratio, 2% stability fee)
+**Existing Foundation**: qUSDToken + CDPVault + PriceFeed + Liquidator (implemented, 150% collateral ratio, 2% stability fee)
 
 #### Phase A: Decentralized Oracle 🔴 P0
 
@@ -961,7 +961,7 @@ To Be Completed:
 
 - [ ] B1: `EmergencyShutdown.sol` — Multi-sig triggered shutdown (≥3/5)
 - [ ] B2: Freeze all CDP operations post-shutdown, allow pro-rata redemption
-- [ ] B3: Global settlement flow (snapshot → liquidation price → QUSD exchange → surplus return)
+- [ ] B3: Global settlement flow (snapshot → liquidation price → qUSD exchange → surplus return)
 - [ ] B4: Tiered pause (L1 pause minting / L2 pause all / L3 global settlement)
 - [ ] B5: L1-L2 DAO vote recovery mechanism
 
@@ -969,7 +969,7 @@ To Be Completed:
 
 > [#52](https://github.com/qfc-network/qfc-contracts/issues/52) — Strengthen de-peg defense
 
-- [ ] C1: `PSM.sol` — USDC/USDT ↔ QUSD 1:1 swap
+- [ ] C1: `PSM.sol` — USDC/USDT ↔ qUSD 1:1 swap
 - [ ] C2: Configurable fees (tin/tout)
 - [ ] C3: Per-asset debt ceiling
 - [ ] C4: Reserve audit interface
@@ -990,7 +990,7 @@ To Be Completed:
 
 > [#53](https://github.com/qfc-network/qfc-contracts/issues/53) — Decentralized parameter management
 
-- [ ] E1: `QUSDGovernance.sol` — Parameter governance contract
+- [ ] E1: `qUSDGovernance.sol` — Parameter governance contract
 - [ ] E2: Governable: stability fee, collateral ratio, liquidation threshold, debt ceiling, PSM fees
 - [ ] E3: Timelock delayed execution
 - [ ] E4: Parameter change range limit (±20%)

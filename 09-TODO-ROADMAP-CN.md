@@ -922,7 +922,7 @@ v2.0 AI 计算网络 (✅ 全部完成):
 ├── ✅ Phase D: 高级过滤 (交易过滤/Approval 管理/标签分类/批量查询)
 └── ✅ Phase E: 社区生态 (评论评分/DeFi 识别/地址画像/Sankey/多签检测)
 
-🔵 QUSD 稳定币完善 (§15):
+🔵 qUSD 稳定币完善 (§15):
 ├── Phase A: 去中心化预言机 (多源聚合, TWAP, 断路器)
 ├── Phase B: 全局结算与紧急关停 (多签触发, 分级暂停, 赎回)
 ├── Phase C: PSM 锚定稳定模块 (USDC/USDT 1:1 兑换)
@@ -936,13 +936,13 @@ v2.0 AI 计算网络 (✅ 全部完成):
 
 ---
 
-### 15. QUSD 稳定币完善路线图
+### 15. qUSD 稳定币完善路线图
 
-> 目标: 将现有 CDP 模型的 QUSD 稳定币从 MVP 升级为生产就绪，增强锚定稳定性、安全性和去中心化程度
+> 目标: 将现有 CDP 模型的 qUSD 稳定币从 MVP 升级为生产就绪，增强锚定稳定性、安全性和去中心化程度
 
 **GitHub Project**: [QFC DeFi Suite](https://github.com/orgs/qfc-network/projects/5)
 
-**现有基础**: QUSDToken + CDPVault + PriceFeed + Liquidator (已实现，150% 抵押率，2% 稳定费)
+**现有基础**: qUSDToken + CDPVault + PriceFeed + Liquidator (已实现，150% 抵押率，2% 稳定费)
 
 #### Phase A: 去中心化预言机 🔴 P0
 
@@ -961,7 +961,7 @@ v2.0 AI 计算网络 (✅ 全部完成):
 
 - [ ] B1: `EmergencyShutdown.sol` — 多签触发关停 (≥3/5)
 - [ ] B2: 关停后冻结 CDP 操作，允许按比例赎回
-- [ ] B3: 全局结算流程 (快照→清算价→QUSD 兑换→剩余退还)
+- [ ] B3: 全局结算流程 (快照→清算价→qUSD 兑换→剩余退还)
 - [ ] B4: 分级暂停 (L1 暂停铸造 / L2 暂停全部 / L3 全局结算)
 - [ ] B5: L1-L2 DAO 投票恢复机制
 
@@ -969,7 +969,7 @@ v2.0 AI 计算网络 (✅ 全部完成):
 
 > [#52](https://github.com/qfc-network/qfc-contracts/issues/52) — 增强脱锚防御
 
-- [ ] C1: `PSM.sol` — USDC/USDT ↔ QUSD 1:1 兑换
+- [ ] C1: `PSM.sol` — USDC/USDT ↔ qUSD 1:1 兑换
 - [ ] C2: 可配置手续费 (tin/tout)
 - [ ] C3: 单资产债务上限
 - [ ] C4: 储备金审计接口
@@ -990,7 +990,7 @@ v2.0 AI 计算网络 (✅ 全部完成):
 
 > [#53](https://github.com/qfc-network/qfc-contracts/issues/53) — 去中心化参数管理
 
-- [ ] E1: `QUSDGovernance.sol` — 参数治理合约
+- [ ] E1: `qUSDGovernance.sol` — 参数治理合约
 - [ ] E2: 可治理: 稳定费、抵押率、清算阈值、债务上限、PSM 费率
 - [ ] E3: Timelock 延迟执行
 - [ ] E4: 参数变更范围限制 (±20%)
