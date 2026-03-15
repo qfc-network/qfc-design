@@ -1011,26 +1011,39 @@ v2.0 AI 计算网络 (✅ 全部完成):
 
 **动机**: qUSD 没有 USDT 式的 blacklist/freeze 功能，但链上转账完全透明，资金流向可被任何人追踪。
 
-#### Phase A: Privacy Pool (ShieldedPool) 🔴 P0
+#### Phase A: Privacy Pool (ShieldedPool) ✅ 已完成
 
 > [#55](https://github.com/qfc-network/qfc-contracts/issues/55) — 核心隐私功能，断开链上资金链路
 
-- [ ] A1: `ShieldedPool.sol` — 固定面额存款/提取 (100/1K/10K/100K qUSD)
-- [ ] A2: Commitment Merkle tree (Incremental Merkle Tree, 20 层)
-- [ ] A3: Nullifier 防重放机制
-- [ ] A4: ZK 电路 (Groth16) — 证明 "知道 tree 中某 commitment 的 secret"
-- [ ] A5: `Verifier.sol` — 链上 ZK proof 验证
-- [ ] A6: Relayer 支持 (新地址无 gas 也能提取)
+- [x] A1: `ShieldedPool.sol` + `ShieldedPoolV2.sol` — 固定面额存款/提取 (100/1K/10K/100K qUSD)
+- [x] A2: `PoseidonMerkleTree.sol` — Poseidon 增量 Merkle Tree, 20 层 (~1M 存款)
+- [x] A3: Nullifier 防重放机制 (链上 mapping + ZK 电路约束)
+- [x] A4: ZK 电路 (Groth16, circom 2.2.2) — `withdraw.circom` 5381 constraints
+  - [x] `hasher.circom` — Poseidon commitment + nullifier hash
+  - [x] `merkleTree.circom` — Merkle proof checker (DualMux + HashLeftRight)
+  - [x] Trusted setup: Powers of Tau (BN128 2^14) + 贡献 + beacon 最终化
+  - [x] `circuits/build.sh` — 一键编译+setup 脚本
+- [x] A5: `Groth16Verifier.sol` — snarkjs 自动生成的链上 ZK proof 验证器
+- [x] A6: Relayer 服务 (`relayer/index.ts`) — Express.js, POST /relay + GET /jobs/:id
+- [x] A7: 前端 UI (`qfc-defi/src/app/privacy/page.tsx`) — 存款/提取, 面额选择, proof 状态
+- [x] A8: SDK (`qfc-defi/src/lib/shieldedPool.ts`) — note 生成/序列化, relayer 客户端
+- [x] E2E 测试: 存款→Poseidon commitment→Merkle insert→离线 Groth16 proof→链上验证→提款
+- [ ] 上线 checklist:
+  - [ ] 正式 Trusted Setup 仪式 (多方参与)
+  - [ ] Relayer 部署 + 充 gas
+  - [ ] 前端集成 snarkjs WASM (浏览器端 proof 生成)
+  - [ ] 审计 ZK 电路 + 合约
 
-#### Phase B: Stealth Address (EIP-5564) 🟡 P1
+#### Phase B: Stealth Address (EIP-5564) ✅ 已完成
 
 > [#56](https://github.com/qfc-network/qfc-contracts/issues/56) — 隐私收款，防止多笔收款被关联
 
-- [ ] B1: `StealthAddressRegistry.sol` — stealth meta-address 注册
-- [ ] B2: `generateStealthAddress()` — 发送方生成一次性地址
-- [ ] B3: `announceTransfer()` — 发布 ephemeral pubkey 供收款方扫描
-- [ ] B4: SDK 集成 (生成/扫描/领取)
-- [ ] B5: 钱包"隐私收款"模式
+- [x] B1: `StealthAddress.sol` — stealth meta-address 注册 (spending + viewing pubkey)
+- [x] B2: `generateStealthAddress()` — 发送方生成一次性 stealth 地址
+- [x] B3: `announceTransfer()` — 发布 ephemeral pubkey + viewTag 供收款方扫描
+- [x] B4: `scanByViewTag()` — viewTag 过滤 + 分页查询 announcements
+- [ ] B5: SDK 集成 (生成/扫描/领取) — 前端集成待完成
+- [ ] B6: 钱包"隐私收款"模式 — 待完成
 
 #### Phase C: 合规证明 (Privacy Pools 扩展) 🟢 P2
 
