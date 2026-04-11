@@ -70,7 +70,7 @@ GitHub 组织: https://github.com/qfc-network
 | `qfc-testnet` | Docker + Terraform | ✅ 90% | 测试网基础设施 (4-VPS, 监控) |
 | `qfc-bridge` | Next.js + ethers.js | ✅ 90% | 跨链桥 (7 条 EVM 链) |
 | `qfc-dex` | Next.js + Hardhat | ✅ 90% | DEX (Uniswap V2 风格 AMM) |
-| `qfc-nft-marketplace` | Next.js | ✅ 80% | NFT 市场 |
+| `qfc-nft-marketplace` | Next.js + ethers.js | ✅ 85% | NFT 市场 (链上读写已接通，待完成 mint/offer/auction UI) |
 | `qfc-defi` | Next.js | ✅ 70% | DeFi 仪表盘 |
 | `qfc-agenthub` | Node.js + TypeScript | ✅ 60% | AI Agent 管理平台 |
 | `qfc-games` | Vite + nginx | ✅ 80% | 游戏中心 |

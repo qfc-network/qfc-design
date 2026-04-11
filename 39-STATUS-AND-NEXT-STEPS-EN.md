@@ -1,6 +1,6 @@
 # QFC Project Status & Next Steps
 
-> Last updated: 2026-04-07
+> Last updated: 2026-04-11
 
 ---
 
@@ -65,7 +65,8 @@
 
 | Issue | Severity | Description |
 |-------|----------|-------------|
-| DeFi/NFT/DEX frontends use mock data | 🟡 Medium | Pages are live but no real contract interaction |
+| DeFi/DEX frontends use mock data | 🟡 Medium | Pages are live but no real contract interaction |
+| NFT Marketplace missing mint/offer/auction UI | 🟢 Low | Read/write basics wired; advanced flows pending |
 | AgentHub is an empty shell | 🟡 Medium | Design docs exist, no actual functionality |
 | Wallet not on Chrome Web Store | 🟢 Low | Fully functional, just not published |
 | Contracts not audited | 🟡 Medium | Acceptable for testnet, mandatory before mainnet |
@@ -86,10 +87,10 @@ The defi, nft-marketplace, and dex frontends all use mock data. They need to be 
 | Project | Current State | Effort |
 |---------|---------------|--------|
 | DEX (qfc-dex) | Contracts deployed, frontend has hooks but addresses are zero | Small — fill in addresses, test interactions |
-| NFT Marketplace (qfc-nft-marketplace) | Contracts deployed, frontend has ABIs but addresses are zero | Medium — needs indexer integration |
+| NFT Marketplace (qfc-nft-marketplace) | ✅ On-chain read/write wired. Collections, NFTs, listings fetched from chain. Create/list/buy flows work. | Remaining: mint page, make offer, auction UI, indexer integration |
 | DeFi Dashboard (qfc-defi) | Contracts deployed, frontend fully mocked | Large — every feature page needs wiring |
 
-Priority: DEX → NFT → DeFi
+Priority: DEX → ~~NFT~~ → DeFi (NFT basic integration done)
 
 #### 1.2 Publish Browser Wallet
 
