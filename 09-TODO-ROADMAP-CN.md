@@ -1,5 +1,7 @@
 # QFC Blockchain - 待办事项与路线图
 
+> **注意：本文档已过时。** 最新现状和规划请查看 [39-STATUS-AND-NEXT-STEPS-CN.md](39-STATUS-AND-NEXT-STEPS-CN.md)。
+>
 > 最后更新: 2026-03-08
 
 ## 项目现状总览

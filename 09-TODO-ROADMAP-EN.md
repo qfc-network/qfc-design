@@ -1,5 +1,7 @@
 # QFC Blockchain - TODO & Roadmap
 
+> **Note: This document is outdated.** For current status and roadmap, see [39-STATUS-AND-NEXT-STEPS-EN.md](39-STATUS-AND-NEXT-STEPS-EN.md).
+>
 > Last Updated: 2026-03-08
 
 ## Project Status Overview

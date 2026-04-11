@@ -28,6 +28,10 @@ All docs are bilingual: `XX-NAME-cn.md` (Chinese) / `XX-NAME-en.md` (English).
 | `15` | 竞品分析 |
 | `16` | 推理证明验证 |
 | `17-29` | v3.0 研究文档（智能合约、AI模型、隐私推理、zkML、DAG共识、代币经济学对比、去中心化模型存储、AI Agent、跨链预言机、DePIN、意图架构、v3.0路线图、Ethereum 2030启发） |
+| `30-38` | 虚拟办公室、链游研究、部署策略、DEX设计、Agent钱包、ERC-4337等 |
+| `39` | **项目现状与下一步规划**（替代09） |
+| `40` | Bridge 多链扩展路线图 |
+| `41` | 测试网链参考（RPC、水龙头、合约地址） |
 
 ## 项目核心创新
 
@@ -63,16 +67,33 @@ GitHub 组织: https://github.com/qfc-network
 | `qfc-contracts` | Solidity + Hardhat + OpenZeppelin | ✅ 90% | 智能合约库 (11 合约) |
 | `qfc-docs` | VitePress | ✅ 85% | 开发者文档站点 (17 页) |
 | `qfc-faucet` | Next.js | ✅ 85% | 测试网水龙头 |
-| `qfc-testnet` | Docker + K8s + Terraform | ✅ 90% | 测试网基础设施 (监控, 多云部署) |
+| `qfc-testnet` | Docker + Terraform | ✅ 90% | 测试网基础设施 (4-VPS, 监控) |
+| `qfc-bridge` | Next.js + ethers.js | ✅ 90% | 跨链桥 (7 条 EVM 链) |
+| `qfc-dex` | Next.js + Hardhat | ✅ 90% | DEX (Uniswap V2 风格 AMM) |
+| `qfc-nft-marketplace` | Next.js | ✅ 80% | NFT 市场 |
+| `qfc-defi` | Next.js | ✅ 70% | DeFi 仪表盘 |
+| `qfc-agenthub` | Node.js + TypeScript | ✅ 60% | AI Agent 管理平台 |
+| `qfc-games` | Vite + nginx | ✅ 80% | 游戏中心 |
 | `qfc-wallet-mobile` | React Native + Expo | ✅ 85% | 移动端钱包 (iOS/Android) |
-| `qfc-wallet-desktop` | — | 🚧 | 桌面端钱包 |
 
 ## 关键配置参考
 
 ### 网络配置
 - **测试网 Chain ID**: 9000 (0x2328)
 - **测试网 RPC**: `https://rpc.testnet.qfc.network`
-- **水龙头**: `https://faucet.testnet.qfc.network`
+
+### 线上服务
+| 服务 | URL |
+|------|-----|
+| 水龙头 | https://faucet.testnet.qfc.network |
+| 浏览器 | https://explorer.testnet.qfc.network |
+| DEX | https://dex.testnet.qfc.network |
+| DeFi | https://defi.testnet.qfc.network |
+| NFT | https://nft.testnet.qfc.network |
+| Bridge | https://bridge.testnet.qfc.network |
+| Games | https://games.testnet.qfc.network |
+| AgentHub | https://agenthub.testnet.qfc.network |
+| Grafana | https://grafana.testnet.qfc.network |
 
 ### 钱包 EIP-1193 优先实现方法
 `eth_requestAccounts`, `eth_accounts`, `eth_chainId`, `eth_sendTransaction`, `personal_sign`, `eth_getBalance`
