@@ -1,0 +1,201 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Tracks the 3 core gaps from 42-CORE-GAPS-CN.md: miner onboarding (A), inference demand (B), miner economics (C). Thresholds align with the T+4w / T+8w / T+12w milestones.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "doc",
+      "tags": [],
+      "title": "42-CORE-GAPS",
+      "tooltip": "Kill-criteria doc",
+      "type": "link",
+      "url": "https://github.com/qfc-network/qfc-design/blob/main/42-CORE-GAPS-CN.md"
+    },
+    {
+      "icon": "doc",
+      "tags": [],
+      "title": "MINER-ECONOMICS",
+      "type": "link",
+      "url": "https://github.com/qfc-network/qfc-design/blob/main/miner-economics/MINER-ECONOMICS.md"
+    }
+  ],
+  "panels": [
+    {
+      "title": "Gap A — Miners registered",
+      "type": "stat",
+      "id": 1,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(qfc_inference_tasks_completed)", "refId": "A", "legendFormat": "registered" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 3 },
+              { "color": "green", "value": 10 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "graphMode": "area"
+      }
+    },
+    {
+      "title": "Gap A — Miner tasks-completed share",
+      "description": "Which wallets are actually producing inference work. If one dominates, it's our internal bot, not external adoption.",
+      "type": "piechart",
+      "id": 2,
+      "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "qfc_inference_tasks_completed", "refId": "A", "legendFormat": "{{miner}}" }
+      ],
+      "options": {
+        "pieType": "donut",
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "list" }
+      }
+    },
+    {
+      "title": "Gap B — Tasks/sec (5m rate)",
+      "type": "timeseries",
+      "id": 3,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(rate(qfc_inference_tasks_completed[5m]))", "refId": "A", "legendFormat": "tasks/sec" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.1 },
+              { "color": "green", "value": 1.0 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Gap B — Inference pass rate %",
+      "description": "Target: ≥99%. Sustained drops mean miners are serving bad results or verification is rejecting honest work.",
+      "type": "stat",
+      "id": 4,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "avg(qfc_inference_pass_rate)", "refId": "A", "legendFormat": "pass" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 95 },
+              { "color": "green", "value": 99 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "textMode": "value"
+      }
+    },
+    {
+      "title": "Gap B — Total tasks ever (cumulative)",
+      "type": "stat",
+      "id": 5,
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(qfc_inference_tasks_completed)", "refId": "A", "legendFormat": "total" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Gap C — Total FLOPS (cumulative)",
+      "description": "Proxy for how much actual compute work has been done — useful for argument 'the chain isn't idle' to external reviewers.",
+      "type": "timeseries",
+      "id": 6,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(qfc_inference_flops_total)", "refId": "A", "legendFormat": "FLOPS" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "title": "Gap C — Inference score per miner",
+      "type": "timeseries",
+      "id": 7,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "qfc_inference_score", "refId": "A", "legendFormat": "{{miner}}" }
+      ]
+    },
+    {
+      "title": "Gap metrics not yet on Prometheus",
+      "description": "These live in miner-economics/snapshot.py output. Weekly refresh via the Gap C GitHub Action creates issues with these numbers. To surface in Grafana, add a small exporter that reads snapshots.jsonl and publishes gauges.",
+      "type": "text",
+      "id": 8,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Gap-C metrics still on the ground floor\n\n- **Unique external submitters / last 100 tasks** — needs on-chain address cardinality; snapshot.py computes this, not yet exported as a Prometheus gauge.\n- **Fee share of total reward** — computed from measured miner earnings vs count × fee; not in Prometheus.\n- **Approved models in catalog** — exposed via `qfc_getSupportedModels` RPC, not Prometheus.\n- **Daily QFC burn from burned gas** — execution layer may emit this; confirm with core team.\n\n**To add these panels:**\n\n1. Write a `gap-metrics-exporter` (20-line Python) that polls the RPC every 60s and exposes gauges on `:9300/metrics`.\n2. Register it with Prometheus via the existing service discovery.\n3. Return here and add panels:\n   - `gap_b_unique_submitters_last_100` (target: ≥5 at T+4w)\n   - `gap_c_fee_share_ratio` (target: ≥0.40 at T+4w, ≥0.50 at T+12w)\n   - `gap_b_approved_models_count` (target: ≥4 after LLM proposal passes)\n\nUntil that exporter is written, read `miner-economics/snapshots.jsonl` directly or run `python3 miner-economics/snapshot.py`."
+      }
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["qfc", "gap-tracking", "42-core-gaps"],
+  "templating": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "QFC — 3 Core Gaps",
+  "uid": "qfc-core-gaps",
+  "version": 1,
+  "weekStart": ""
+}

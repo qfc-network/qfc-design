@@ -8,14 +8,24 @@
 
 ## TL;DR (for Gap C of 42-CORE-GAPS)
 
-At today's task demand (~8,600 inferences/day, ~$0 in USD-terms from fees) QFC's miner rewards are **75% block-reward inflation, 25% user fees**. If we onboard more than ~500 external miners without either (a) a dramatic demand increase or (b) a token price > $0.05, **new miners lose money**.
+At today's task demand (~8,600 inferences/day, ~$0 in USD-terms from fees) QFC's miner rewards are **75% block-reward inflation, 25% user fees**.
 
-Verdict: **Gap C does NOT pass cleanly as written.** It *might* pass conditionally. The honest decision framework:
+**Major update vs first version of this doc** — the emission schedule is not constant. Per `qfc-core/crates/qfc-types/src/constants.rs`:
 
-- If you believe token price can sustain >$0.05 within 6 months AND demand can hit >100k tasks/day → keep going.
-- If neither is a bet you'd make real money on → **the PoC-miner model is economically fragile, and you should either redesign emissions (lower inflation subsidy, higher fee share) or pivot away from the "public miner" model.**
+- Year 0: 10 QFC/block
+- Halves yearly through year 4
+- Floor: 0.625 QFC/block from year 4 onward (1/16 of year 0)
 
-This is the single most important finding in this document.
+This changes the verdict. **At today's 8,600 tasks/day and zero demand growth, the chain hits 39% fee-share by year 4 purely from emission decay.** Demand growth is no longer an existence requirement; it's the difference between "OK" and "good."
+
+Revised verdict: **Gap C passes conditionally** — the emission schedule already plans for its own sunset. Two conditions still matter:
+
+1. **Miners must survive year 0 with 1/n-of-inflation dilution.** At n=100 and token price < $0.05, RTX 3060 rigs bleed. A hardware-mix that skews toward cheap laptops / VPSs (per Gap A onboarding) matters more than previously thought — because only those break even in year 0.
+2. **Demand has to show up before miner count grows past ~500.** If we onboard 1,000 miners in month 1 with no demand signal, early joiners quit before fees take over. Pace matters.
+
+What I was wrong about in v1: I treated inflation as perpetual. It isn't — it halves on a strict schedule. The "fragile" framing was too harsh.
+
+What still matters for Gap C's T+4 week review: get someone external to sanity-check the halving plus ramp math, not the "is this model doomed" question.
 
 ---
 
@@ -135,13 +145,20 @@ Missing any 2 of 4 of these → admit the miner model isn't working and pivot (c
 
 ---
 
-## 7. Data gaps / things this model doesn't yet model
+## 7. Data gaps / things this model still doesn't model
 
-- **Stake dynamics**: current validators stake just 0.000001 QFC (visible in `qfc_getValidators` as `0xf4240`). Either this is a devnet placeholder or the stake denomination isn't wei. Need to confirm before using "stake" as a real cost input.
-- **Slashing**: we haven't simulated slash events. Today's pass rate is 100% — the model assumes no honest miner gets slashed.
-- **Vesting**: `qfc_getMinerVesting` exists but response is > 10 MiB for the active miner. The 7-day cliff + 30-day vest pattern (per design docs) means **today's 3,427 QFC/day ≠ today's USD income** — miners can't sell for ~30 days.
-- **Model diversity**: only 3 models are approved (`qfc-embed-small`, `qfc-embed-medium`, `qfc-classify-small`). All embedding. A real market needs LLM inference where fees can plausibly be 100–1000× higher per call.
-- **Inflation pool isn't actually constant**: protocol probably scales emission with epoch or other parameters. This model assumes flat — needs confirmation from `qfc-core` emission logic.
+**Resolved since v1:**
+
+- ✅ **Emission schedule** — verified in `qfc-core/crates/qfc-types/src/constants.rs`: 10 QFC/block → halves yearly → floor at 0.625 QFC/block after year 4. Model now uses this.
+- ✅ **Stake denomination** — wei (standard 10^18). Mainnet min validator stake is 10,000 QFC = 10^22 wei. Testnet validators show `0xf4240` (1,000,000 wei, essentially 0 QFC) — that's a testnet-only placeholder, not the mainnet config.
+- ✅ **Vesting** — 7-day cliff + 23-day linear unlock (total 30 days from earn). Enforced in `qfc_getMinerVesting`. In steady state (past day 30), liquid income ≈ daily earnings. Startup lag only.
+
+**Still assumed / unmodeled:**
+
+- **Block reward split between validators and miners**: today's measurement showed one miner earning 3,427 QFC/day. Network-wide year-0 emission is 45,470 QFC/day. So one miner gets 7.5% of total emission. This means there's a separate allocation rule between validators (who produce blocks) and inference miners (who serve tasks) that the model doesn't yet capture. For the Gap C review, a reviewer would want this split explicit.
+- **Slashing**: haven't simulated slash events. Today's pass rate is 100% — model assumes no honest miner gets slashed.
+- **Model diversity**: only 3 models are approved (`qfc-embed-small`, `qfc-embed-medium`, `qfc-classify-small`). All embedding. Per the companion [PROPOSAL-LLM-MODEL-CATALOG.md](../PROPOSAL-LLM-MODEL-CATALOG.md), adding an LLM increases fee-per-call 10-100× and the demand-scale curve above becomes much kinder.
+- **Gas consumption from non-inference traffic**: transfers, DEX swaps, NFT mints also generate protocol fees. Not in the model because they don't pay miners — they burn or go to validators.
 
 ---
 

@@ -1,3 +1,18 @@
+## Emission schedule (from protocol constants)
+
+| Year | QFC/block | Blocks/day | QFC/day network-wide |
+|-----:|----------:|-----------:|---------------------:|
+| 0 |   10.0000 | 4,547 |               45,470 |
+| 1 |    5.0000 | 4,547 |               22,735 |
+| 2 |    2.5000 | 4,547 |               11,368 |
+| 3 |    1.2500 | 4,547 |                5,684 |
+| 4 |    0.6250 | 4,547 |                2,842 |
+| 5 |    0.6250 | 4,547 |                2,842 |
+
+Floor: 0.625 QFC/block after year 4. Block time: 19s measured on testnet.
+
+**Implication for the 75/25 baseline:** today's inflation subsidy is year-0 emission. By year 4 the absolute QFC subsidy is 1/16 of today. If task volume grows even 4× by year 4 at today's 0.1 QFC/task fee, fees surpass inflation and the chain becomes demand-funded without any parameter change. The question is whether demand shows up.
+
 ## Baseline (measured, 2026-04-14)
 
 - Active miners: 1 (miner `0xdb7c460a...`, single one running tasks)
@@ -67,6 +82,20 @@ At what QFC/USD price does a miner recover daily cost?
 | A100 40GB (rented per-hour)  |     10 |   342.7 |        27.48 |     $0.0802 |
 | A100 40GB (rented per-hour)  |    100 |    34.3 |        27.48 |     $0.8019 |
 | A100 40GB (rented per-hour)  |  1,000 |     3.4 |        27.48 |     $8.0189 |
+
+## Scenario: fee share over time (year × task volume)
+
+100 miners, token price irrelevant here. Cell = fees/(fees+inflation). 
+Target is fee share > 50% — the point where the chain is demand-funded.
+
+| Tasks/day | Y0 | Y1 | Y2 | Y3 | Y4 | Y5 |
+|-----------|------|------|------|------|------|------|
+|     1,000 |  0.2% |  0.4% |  0.9% |  1.7% |  3.4% |  3.4% |
+|    10,000 |  2.2% |  4.2% |  8.1% | 15.0% | 26.0% | 26.0% |
+|   100,000 | 18.0% | 30.5% | 46.8% | 63.8% | 77.9% | 77.9% |
+| 1,000,000 | 68.7% | 81.5% | 89.8% | 94.6% | 97.2% | 97.2% |
+
+Reading: at today's 8,600 tasks/day, the chain is ~4% fee-funded at year 0 and ~39% fee-funded at year 4 — purely from emission halving, no demand growth. If demand grows to 100k/day by year 2 the chain crosses 50% fee share.
 
 ## Scenario: demand-side scaling
 

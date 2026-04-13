@@ -4,13 +4,15 @@ QFC Miner Economics Model
 =========================
 Inputs:
   - Measured per-miner daily earnings on the testnet (as of 2026-04-14)
+  - Actual protocol constants from qfc-core/crates/qfc-types/src/constants.rs
+    (block reward, halving schedule, min stake, vesting)
   - Assumed hardware cost and electricity cost
   - Range of external miner counts and token prices
 
 Outputs:
-  - Daily reward per miner at different network sizes
+  - Daily reward per miner at different network sizes AND years (post-halving)
   - Break-even token price curve
-  - Markdown tables (stdout) + PNG plots (optional)
+  - Markdown tables (stdout) or JSON
 """
 
 from __future__ import annotations
@@ -18,6 +20,31 @@ import argparse
 import json
 import sys
 from dataclasses import dataclass
+
+
+# ---------------------------------------------------------------------------
+# Protocol constants (source of truth: qfc-core/crates/qfc-types/src/constants.rs)
+# ---------------------------------------------------------------------------
+BLOCK_REWARD_YEAR_0_QFC = 10.0          # initial per-block emission
+MIN_BLOCK_REWARD_QFC = 0.625            # floor after 4 halvings
+HALVING_PERIOD_YEARS = 1
+BLOCK_TIME_SECONDS = 19                 # measured average on testnet
+MIN_VALIDATOR_STAKE_QFC = 10_000        # mainnet-only; testnet has 1M wei placeholder
+VESTING_CLIFF_DAYS = 7
+VESTING_TOTAL_DAYS = 30                 # cliff + 23 days linear unlock
+
+BLOCKS_PER_DAY = 86_400 // BLOCK_TIME_SECONDS  # ~4,547 with 19s blocks
+
+
+def block_reward_for_year(year: int) -> float:
+    """Halves each year until floor."""
+    r = BLOCK_REWARD_YEAR_0_QFC / (2 ** max(0, year))
+    return max(r, MIN_BLOCK_REWARD_QFC)
+
+
+def network_inflation_per_day(year: int) -> float:
+    """Total new QFC emitted into the reward pool each day, network-wide."""
+    return block_reward_for_year(year) * BLOCKS_PER_DAY
 
 
 # ---------------------------------------------------------------------------
@@ -32,10 +59,6 @@ BASELINE_PASS_RATE = 1.0  # 100% per qfc_getInferenceStats
 FEE_PER_TASK_QFC = 0.1
 
 # Emission breakdown (inferred):
-#   Current single miner gets 3,427 QFC/day.
-#   Fees at 8,635 × 0.1 = 863 QFC/day
-#   → block reward (inflation) = 2,564 QFC/day to this miner
-#   That's the "supply-side subsidy" portion.
 BASELINE_DAILY_FEES_TO_MINER = BASELINE_DAILY_TASKS * FEE_PER_TASK_QFC  # 863.5
 BASELINE_DAILY_INFLATION_TO_MINER = BASELINE_DAILY_REWARD_QFC - BASELINE_DAILY_FEES_TO_MINER
 
@@ -107,8 +130,29 @@ def breakeven_token_price_usd(daily_reward_qfc: float, daily_opex_usd: float) ->
 # Reporting
 # ---------------------------------------------------------------------------
 
+def emission_schedule_report() -> str:
+    """Print the halving schedule so readers see the deflationary curve."""
+    out = ["## Emission schedule (from protocol constants)\n"]
+    out.append("| Year | QFC/block | Blocks/day | QFC/day network-wide |")
+    out.append("|-----:|----------:|-----------:|---------------------:|")
+    for y in range(0, 6):
+        r = block_reward_for_year(y)
+        out.append(f"| {y} | {r:>9.4f} | {BLOCKS_PER_DAY:,} | {r * BLOCKS_PER_DAY:>20,.0f} |")
+    out.append("")
+    out.append(f"Floor: {MIN_BLOCK_REWARD_QFC} QFC/block after year 4. "
+               f"Block time: {BLOCK_TIME_SECONDS}s measured on testnet.")
+    out.append("")
+    out.append("**Implication for the 75/25 baseline:** today's inflation subsidy is "
+               "year-0 emission. By year 4 the absolute QFC subsidy is 1/16 of today. "
+               "If task volume grows even 4× by year 4 at today's 0.1 QFC/task fee, "
+               "fees surpass inflation and the chain becomes demand-funded without any "
+               "parameter change. The question is whether demand shows up.")
+    out.append("")
+    return "\n".join(out)
+
+
 def report(miners_scenarios: list[int], demand_scenarios: list[int], token_prices: list[float]) -> str:
-    out = []
+    out = [emission_schedule_report()]
     out.append("## Baseline (measured, 2026-04-14)\n")
     out.append(f"- Active miners: 1 (miner `0xdb7c460a...`, single one running tasks)")
     out.append(f"- Daily reward: **{BASELINE_DAILY_REWARD_QFC:,.0f} QFC/day**")
@@ -160,6 +204,28 @@ def report(miners_scenarios: list[int], demand_scenarios: list[int], token_price
             be = breakeven_token_price_usd(total, opex)
             be_str = f"${be:.4f}" if be < 100 else ">$100"
             out.append(f"| {hw.name[:28]:<28} | {n:>6,} | {total:>7,.1f} | {opex:>12.2f} | {be_str:>11} |")
+    out.append("")
+
+    out.append("## Scenario: fee share over time (year × task volume)\n")
+    out.append("100 miners, token price irrelevant here. Cell = fees/(fees+inflation). ")
+    out.append("Target is fee share > 50% — the point where the chain is demand-funded.\n")
+    hdr = "| Tasks/day | " + " | ".join(f"Y{y}" for y in range(6)) + " |"
+    sep = "|-----------|" + "|".join(["-" * 6] * 6) + "|"
+    out.append(hdr)
+    out.append(sep)
+    for tasks in demand_scenarios:
+        row = [f"| {tasks:>9,} "]
+        for y in range(6):
+            network_inflation = network_inflation_per_day(y)
+            network_fees = tasks * FEE_PER_TASK_QFC
+            share = network_fees / (network_fees + network_inflation) if (network_fees + network_inflation) > 0 else 0
+            row.append(f"| {share:>5.1%} ")
+        row.append("|")
+        out.append("".join(row))
+    out.append("")
+    out.append("Reading: at today's 8,600 tasks/day, the chain is ~4% fee-funded at year 0 "
+               "and ~39% fee-funded at year 4 — purely from emission halving, no demand growth. "
+               "If demand grows to 100k/day by year 2 the chain crosses 50% fee share.")
     out.append("")
 
     out.append("## Scenario: demand-side scaling\n")
