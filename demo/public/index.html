@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QFC Inference — verifiable AI on-chain</title>
+  <style>
+    :root {
+      --bg: #0a0e13;
+      --panel: #131923;
+      --border: #1f2937;
+      --text: #e6edf3;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --good: #22c55e;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+    h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+    p.lede { color: var(--muted); margin: 0 0 32px; font-size: 16px; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%; min-height: 100px; padding: 12px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: inherit; font-size: 14px; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    .row { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+    button {
+      background: var(--accent); color: white;
+      border: 0; border-radius: 8px; padding: 10px 20px;
+      font-weight: 600; font-size: 14px; cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .result { display: none; }
+    .result.visible { display: block; }
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; font-size: 13px; }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; font-family: var(--mono); word-break: break-all; }
+    .badge {
+      display: inline-block; background: rgba(34,197,94,0.1); color: var(--good);
+      border: 1px solid rgba(34,197,94,0.3); border-radius: 999px;
+      padding: 2px 10px; font-size: 12px; font-weight: 600;
+    }
+    a { color: var(--accent); }
+    .err { color: #ef4444; font-size: 14px; margin-top: 12px; }
+    .what {
+      margin-top: 32px; padding-top: 24px;
+      border-top: 1px solid var(--border); font-size: 14px; color: var(--muted);
+    }
+    .what h3 { color: var(--text); margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .what ul { margin: 0; padding-left: 20px; }
+    .what li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>QFC Inference</h1>
+    <p class="lede">Verifiable AI inference on a public blockchain. Submit text, get a result, see the proof on-chain. No wallet needed for this demo.</p>
+
+    <div class="panel">
+      <label for="input" class="muted" style="display:block; margin-bottom:8px;">Input text</label>
+      <textarea id="input" maxlength="512" placeholder="Try: &quot;The quick brown fox jumps over the lazy dog.&quot;"></textarea>
+      <div class="row">
+        <button id="go">Submit inference</button>
+        <span class="muted" id="status"></span>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="panel result" id="result">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <span class="badge">✓ Completed on-chain</span>
+        <span class="muted" id="timing"></span>
+      </div>
+      <dl class="kv">
+        <dt>Task ID</dt>
+        <dd><a id="task-link" target="_blank" rel="noopener"></a></dd>
+        <dt>Executed by</dt>
+        <dd id="miner"></dd>
+        <dt>Block</dt>
+        <dd id="block"></dd>
+        <dt>Result</dt>
+        <dd id="output" style="max-height: 120px; overflow:auto;"></dd>
+      </dl>
+    </div>
+
+    <div class="what">
+      <h3>What just happened</h3>
+      <ul>
+        <li>Your text was submitted as an inference task on the QFC testnet.</li>
+        <li>A miner somewhere on the network ran the model and produced a result.</li>
+        <li>The miner also produced a <em>cryptographic proof</em> that the model ran on your input. Anyone can verify it by looking up the task on the block explorer.</li>
+        <li>You didn't need a wallet — this demo's relay paid the fee for you. In production you'd sign and pay yourself.</li>
+      </ul>
+      <p>SDK snippets: <a href="https://github.com/qfc-network/qfc-design/tree/main/sdk-snippets" target="_blank">JavaScript / Python</a>. Run the same flow from your own app in 20 lines of code.</p>
+    </div>
+  </div>
+
+  <script>
+    const goBtn = document.getElementById("go");
+    const input = document.getElementById("input");
+    const statusEl = document.getElementById("status");
+    const errEl = document.getElementById("err");
+    const resultEl = document.getElementById("result");
+    const timingEl = document.getElementById("timing");
+    const taskLink = document.getElementById("task-link");
+    const minerEl = document.getElementById("miner");
+    const blockEl = document.getElementById("block");
+    const outputEl = document.getElementById("output");
+
+    goBtn.addEventListener("click", async () => {
+      const text = input.value.trim();
+      errEl.textContent = "";
+      resultEl.classList.remove("visible");
+      if (!text) { errEl.textContent = "Enter some text first."; return; }
+
+      goBtn.disabled = true;
+      statusEl.textContent = "Submitting…";
+      const t0 = performance.now();
+
+      try {
+        const r = await fetch("/api/inference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+
+        const totalMs = Math.round(performance.now() - t0);
+        timingEl.textContent = `${data.executionTimeMs} ms inference · ${totalMs} ms end-to-end`;
+        taskLink.textContent = data.taskId;
+        taskLink.href = data.explorerUrl;
+        minerEl.textContent = data.minerAddress;
+        blockEl.textContent = data.blockHeight;
+        outputEl.textContent = typeof data.result === "string" ? data.result : JSON.stringify(data.result);
+        resultEl.classList.add("visible");
+        statusEl.textContent = "";
+      } catch (err) {
+        errEl.textContent = err.message || "Something went wrong.";
+        statusEl.textContent = "";
+      } finally {
+        goBtn.disabled = false;
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") goBtn.click();
+    });
+  </script>
+</body>
+</html>
