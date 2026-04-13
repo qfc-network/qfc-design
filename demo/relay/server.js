@@ -58,6 +58,8 @@ async function rpc(method, params) {
 }
 
 const app = express();
+// Behind Traefik / reverse proxy — trust first hop so express-rate-limit can see the real client IP.
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "32kb" }));
 
 // Rate limit — per IP, sliding window
