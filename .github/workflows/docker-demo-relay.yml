@@ -1,0 +1,71 @@
+name: Docker — demo relay
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demo/**"
+      - ".github/workflows/docker-demo-relay.yml"
+  workflow_dispatch: {}
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: qfc-network/qfc-demo-relay
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-sha-,format=short
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: demo
+          file: demo/relay/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  notify-testnet:
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger qfc-testnet image-tag bump
+        env:
+          SHORT_SHA: ${{ github.sha }}
+          DISPATCH_TOKEN: ${{ secrets.TESTNET_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "${DISPATCH_TOKEN:-}" ]; then
+            echo "TESTNET_DISPATCH_TOKEN not set — skipping dispatch. Tag must be bumped manually."
+            exit 0
+          fi
+          TAG="main-sha-${SHORT_SHA:0:7}"
+          curl -sf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${DISPATCH_TOKEN}" \
+            https://api.github.com/repos/qfc-network/qfc-testnet/dispatches \
+            -d "{\"event_type\":\"image-published\",\"client_payload\":{\"service\":\"qfc-demo-relay\",\"tag\":\"${TAG}\",\"branch\":\"main\",\"sha\":\"${{ github.sha }}\"}}"
