@@ -21,12 +21,18 @@
 ### 问题
 当前只有我们自己跑的 2 个 miner 在产生推理证明，3 个内部 node 在产块。没有任何外部 miner 加入。没有外部矿工，"去中心化推理网络"是空话。
 
-缺失最刺眼的一块：**没有一条能让陌生人在 30 分钟内跑起 miner 的路径**。
+**基础设施层面其实已经到位**——这是这次审视时修正的判断：
 
-- 没有 `qfc-miner` 的独立仓库或 release binary
-- 没有 "System Requirements" 文档（最低 CPU/GPU/RAM/带宽）
-- 没有一键启动脚本（`curl | sh` 或 `docker run`）
-- 没有 miner 首日能看到奖励的 dashboard
+- ✅ `qfc-network/qfc-miner` 独立 github 仓库已存在
+- ✅ Release v2.3.2（2026-03-15）已经有 9 个平台的预编译 binary：macOS arm64/intel、Linux x86_64/arm64（± CUDA/OpenCL）、Windows x86_64（± CUDA）
+- ✅ 一键脚本 `start-miner.sh`（mac/Linux）+ `install.ps1`（Windows）
+- ✅ README 里有 GPU tier 表、硬件最低要求、troubleshooting、如何接入 faucet
+
+所以 Gap A 真正缺的不是"把路径造出来"，而是三件事：
+
+1. **曝光**：外部开发者完全不知道这个仓库。没有 twitter/HN/reddit 发布、没有独立 landing page。
+2. **真实世界验证**：从没在一台 clean VPS 上按 README 完整走一遍过。脚本里很可能有"我的机器上能跑"的摩擦点。
+3. **兼容性确认**：v2.3.2 binary 发布于 2026-03-15，过去一个月链协议/合约可能有变更。`start-miner.sh` 下载的仍是 v2.3.2 — 需要确认它对今天的 testnet 还能跑通。
 
 ### 成功判据（6 周内）
 - [ ] **10 个外部 miner** 连续跑 ≥ 7 天产生有效推理证明
@@ -37,10 +43,10 @@
 - 6 周后外部 miner < 3 个，且新增 onboarding 询问 < 每周 1 人 → miner 这条路不成立，考虑把 QFC 重新定位成纯推理 API（不走去中心化矿工路线）
 
 ### 两周内第一步
-1. 建立 `qfc-miner` 仓库，产出 x86_64 + arm64 的 Docker image（ghcr.io 托管）
-2. 写 `MINER-QUICKSTART.md`：硬件最低要求、启动命令、如何看奖励、如何提问
-3. 在 `getting-started.qfc.network` 挂一页，链接到 faucet、explorer、miner docs
-4. 自己按 MINER-QUICKSTART 在一台干净 VPS 上走一遍，**不能有任何"灵感时刻"的步骤**
+1. **自测 clean-install**：租一台 hetzner/vultr 最低配 VPS（Linux x86_64），不带任何本地开发痕迹，完全按 `qfc-miner/README.md` 走一遍。每个卡住的地方记下来 → 当场修 README 或脚本。成功跑通的判据是：在 explorer 上能看到这台 miner 的地址产出过推理证明。
+2. **兼容性回归**：v2.3.2 binary 对今天的 testnet 能跑通吗？如果不能，触发一次 release → 重新构建全部 9 个平台的 binary。
+3. **第一批曝光**：做一页简单的 landing（`miner.qfc.network`？），文案不超过一屏，核心就是 `curl | sh` 的命令 + 能赚多少 QFC 的估算。发一条 twitter + 一个 HN "Show HN" post，导流看首日转化。
+4. **首日 dashboard**：矿工跑起来第一天想看的东西——我的地址、产出的 proof 数量、累计 QFC 奖励。没有就补一个最简版（可以是 explorer 里加一个 `/miner/[address]` 页）。
 
 ---
 
