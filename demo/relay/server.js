@@ -39,12 +39,40 @@ const wallet = new ethers.Wallet(
 );
 
 console.log("Relay wallet:", wallet.address);
-provider.getBalance(wallet.address).then((bal) => {
-  console.log("Relay balance:", ethers.formatEther(bal), "QFC");
-  if (bal < ethers.parseEther("1")) {
-    console.warn("WARN: relay balance below 1 QFC — fund via faucet before running out");
+
+// Auto top-up via faucet when balance drops below threshold.
+// Faucet has a 24h per-address cooldown, so we check every hour but only
+// request when balance is low; this self-heals without external cron.
+const MIN_BALANCE_QFC = 2n;
+const FAUCET_URL = (process.env.QFC_FAUCET_URL || "https://faucet.testnet.qfc.network") + "/api/faucet";
+
+async function ensureFunded() {
+  try {
+    const bal = await provider.getBalance(wallet.address);
+    const balQfc = ethers.formatEther(bal);
+    console.log(`Relay balance: ${balQfc} QFC`);
+    if (bal >= ethers.parseEther(MIN_BALANCE_QFC.toString())) return;
+
+    console.log(`Balance below ${MIN_BALANCE_QFC} QFC threshold — requesting faucet top-up`);
+    const r = await fetch(FAUCET_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: wallet.address }),
+    });
+    const body = await r.json().catch(() => ({}));
+    if (body?.success) {
+      console.log(`Faucet top-up success: ${body.data?.amount ?? "?"} QFC, tx ${body.data?.txHash ?? "?"}`);
+    } else {
+      console.warn(`Faucet top-up skipped: ${body?.error ?? r.statusText}`);
+    }
+  } catch (err) {
+    console.warn("ensureFunded error:", err?.message ?? err);
   }
-});
+}
+
+// Initial check + hourly recheck.
+ensureFunded();
+setInterval(ensureFunded, 60 * 60 * 1000).unref();
 
 async function rpc(method, params) {
   const r = await fetch(RPC_URL, {
