@@ -1,0 +1,75 @@
+name: Weekly Gap C Snapshot
+
+on:
+  schedule:
+    # Every Sunday at 00:00 UTC (= Sunday 08:00 SGT, early Sunday US)
+    - cron: "0 0 * * 0"
+  workflow_dispatch: {}  # allow manual trigger from the Actions tab
+
+permissions:
+  contents: write   # commit the appended snapshot
+  issues: write     # open the weekly issue
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run snapshot
+        id: snap
+        working-directory: miner-economics
+        run: |
+          # Human-readable report (also appends to snapshots.jsonl).
+          python3 snapshot.py > report.txt
+          # Raw JSON for the date field — don't append twice.
+          python3 snapshot.py --json --no-append > snapshot.json
+          echo "date=$(jq -r .date snapshot.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit appended snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add miner-economics/snapshots.jsonl
+          if git diff --cached --quiet; then
+            echo "No change — skipping commit"
+            exit 0
+          fi
+          git commit -m "chore(snapshot): weekly Gap C data point ${{ steps.snap.outputs.date }}"
+          git push
+
+      - name: Open weekly tracking issue
+        uses: actions/github-script@v7
+        env:
+          SNAP_DATE: ${{ steps.snap.outputs.date }}
+        with:
+          # Read the report from disk (not through step outputs) to dodge any
+          # escaping headaches with backticks/special chars in the report body.
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('miner-economics/report.txt', 'utf8');
+            const date = process.env.SNAP_DATE;
+            const body = [
+              'From `miner-economics/snapshot.py`. Kill criteria: see `42-CORE-GAPS-CN.md`.',
+              '',
+              '```',
+              report,
+              '```',
+              '',
+              '## Weekly review checklist',
+              '- [ ] Fee share trending up toward 40% (T+4w target)?',
+              '- [ ] Unique submitters > last week?',
+              '- [ ] Any Gap A / Gap B blocker worth surfacing?',
+              '- [ ] If no progress on any metric for 4 weeks → trigger kill-switch discussion.',
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `Gap C snapshot — ${date}`,
+              body,
+            });
