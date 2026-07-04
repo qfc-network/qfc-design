@@ -183,3 +183,53 @@ Take this model to 1–2 people who've done PoS / mining economics before (Cosmo
 If 2 out of 2 say "this doesn't close without redesigning emissions or finding demand," then Gap C has failed and the 42-CORE-GAPS kill criteria triggers at the T+4 week mark.
 
 If at least one sees a plausible path, we scope the redesign and keep going.
+
+---
+
+## v3 refresh (2026-07-04)
+
+> Refresh per Phase 1.1 of `44-L1-MASTER-PLAN-CN.md`. Model: [`refresh.py`](./refresh.py) (offline, stdlib-only); tables regenerated in [`OUTPUT.md`](./OUTPUT.md). Everything above this section is the v2 analysis, kept as-is for the record.
+
+### Data-quality caveat — read this before the numbers
+
+Unlike v2, this refresh does **not** query the live RPC. The testnet has been in a 3-way consensus fork (three validators, three independent chains) for the entire snapshot period, and was hard-reset with fresh genesis on **2026-06-18** and again on **2026-06-27**. Every number below comes from `snapshots.jsonl` — 12 weekly Gap C snapshots (2026-04-13 → 2026-06-28) — and each snapshot reflects whichever forked node answered that week. The `all_time_*` counters are visibly discontinuous (548,504 on 05-17 → 131,495 on 06-07 → 22,931 on 06-21 → 6,790 on 06-28), 4 of 12 snapshots are all-zero (RPC down or node mid-reset), and on 06-28 both miners report identical task counts and earnings — plausibly the same task queue served on separate fork branches, i.e. some double-counting. I treat the series as **indicative, not authoritative**. Live numbers would be worse, not better: they'd be authoritative-looking and still wrong.
+
+### What changed vs v2
+
+1. **Twelve weeks of observation instead of a single-day measurement.** The three pre-fork snapshots (April) were remarkably stable: ~17,280 tasks/day, ~6,700 QFC/day pool, fee share 25.6–26.2% — v2's 25% assumption was accurate when the chain was healthy.
+2. **Fee share observed at 0.29 on 06-28** vs 0.25 assumed in v2. Before celebrating: it rose for the *wrong reason*. Fees didn't grow — the inflation-side pool shrank (4,990 → 3,324 QFC/day) because the forked chain produces blocks erratically. Demand-funded progress looks identical to supply-side decay in this one ratio; the decomposition matters.
+3. **miners_registered went 3 → 0 → 2** across the resets. The two survivors (`0xdb7c460a…`, `0xca8d86c4…`) re-registered after the 06-27 reset; the third address (`0x31ca8b60…`) never earned anything in any snapshot and is gone. n=2 is today's real miner count, so the tables now start at n=2.
+4. **Model basis changed.** v2 modeled the single active miner's earnings as the pool; v3 uses the network-wide miner reward pool from the 06-28 snapshot (4,681.69 QFC/day = 3,323.69 inflation + 1,358 fees), splits it 1/n, and decays the inflation slice on the halving schedule. The n=2 year-0 cell reproduces the observed per-miner 2,340.84 QFC/day to within 0.1%, which is the one consistency check the forked data allows.
+5. **Constants re-verified** against `qfc-core/crates/qfc-types/src/constants.rs` (2026-07-04): 10 QFC/block, yearly halving, 0.625 floor — unchanged. One thing I hadn't recorded in v2: the protocol *gas*-fee split (47/28/20/5 producer/voters/burn/treasury) allocates **0% to inference miners**. Miner fee income is exclusively inference task fees (`maxFee`, 0.1 QFC/task), a separate flow. The model was already treating it that way, but now it's explicit.
+
+### Does "conditional pass" still hold?
+
+**Yes.** The verdict rested on a structural fact — the emission schedule sunsets itself — and that fact is protocol code, not testnet telemetry. At the refreshed baseline and *zero* demand growth, the miner-pool fee share goes 29% (Y0) → 45% (Y1) → 62% (Y2) → 87% (Y4) purely from halving. The chain becomes demand-funded on schedule even if demand never grows, at the cost of the pool shrinking to a third of today.
+
+The master plan's abandonment gate was "refresh concludes token price > $10 needed for anyone to run." The worst realistic cell is a rented datacenter GPU at n=1,000 needing $2.11 — bad, but an order of magnitude inside the gate, and nobody should run rented A100s on this chain anyway. The gate does not trigger.
+
+What the refresh *does* sharpen: the demand side got worse, not better. `unique_submitters_last_100` is now 0 (was 2–3 internal in April). There are not even internal-looking submitters in the window anymore; the 13,580 tasks/day are pure self-generated load. Gap B remains the actual existential issue — this model just prices what miners earn while we wait.
+
+### The two survival conditions, restated with refreshed numbers
+
+1. **Miners must survive year 0 on 1/n of a 4,682 QFC/day pool.** Refreshed breakevens (Y0): at n=100, an RTX 3060 rig needs ≥ **$0.021** (v2 said $0.032 — looks better only because the pool basis changed); at n=500 it needs **$0.105** and at n=1,000 **$0.211**. Idle VPS needs $0.0035 / $0.018 / $0.035 at n=100/500/1,000; an already-owned laptop is free at any n. The v2 conclusion stands, slightly sharpened: **below ~$0.02/QFC, only $0-marginal hardware should be onboarded past n≈100**, and GPU recruitment before a price floor exists is how we churn early miners.
+2. **Demand must show up before miner count grows past ~500.** At n=500, year 0, the per-miner reward is 9.36 QFC/day — $0.47/day at $0.05. That covers a VPS ($0.16/day) and nothing else. By year 1 it's 6.04 QFC/day. Unless task fees grow several-fold by then, every miner beyond the hobbyist tier at n≥500 is underwater at any price below $0.10. Pace of onboarding still matters more than total count.
+
+### What this refresh cannot tell us
+
+- Whether the April-era ~17k tasks/day or the post-reset 13.6k/day is the "real" steady state — both are internal load generators, on a forked chain.
+- Anything about PoC weighting in practice: with 2 miners splitting exactly 50/50, the 1/n assumption is untested above n=2.
+- Whether the theoretical inference-miner pool (15% of block rewards ≈ 38,900 QFC/day at nominal 3.333 s blocks) would be reached on a healthy chain — observed is ~12× lower. If the consensus fix lands and block production normalizes, the year-0 pool could be substantially *larger* than modeled here, which would loosen condition 1 and tighten nothing. Re-run `refresh.py` against the first month of post-fix snapshots before quoting these tables externally.
+
+Next step is unchanged and is not a modeling step: **1.3 — put this in front of one or two people who have done PoS/DePIN economics** (REVIEW-REQUEST.md is written; it needs to be sent). The refresh strengthens the case that the question for them is the ramp math, not existential doom.
+
+### How to reproduce (v3)
+
+```bash
+cd qfc-design/miner-economics
+python3 refresh.py            # Markdown tables to stdout
+python3 refresh.py --write    # regenerate OUTPUT.md
+python3 refresh.py --json     # raw numbers
+```
+
+No network access required or wanted — the model reads `snapshots.jsonl` and hard-codes the verified protocol constants, with sanity checks (`## Sanity checks` in OUTPUT.md) asserting internal consistency on every run.
