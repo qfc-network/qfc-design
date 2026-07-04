@@ -86,7 +86,7 @@ Phase 0 链能跑 ──→ Phase 1 经济自洽 ──→ Phase 2 外部闭环�
 | # | 工作项 |
 |---|--------|
 | 2A.1 | 先修 MINER-ONBOARDING-REVIEW.md 的 2 个已知 bug：`start-miner.sh` 下载源指向 `qfc-miner` repo（而非 qfc-core）；版本漂移端到端验证 |
-| 2A.2 | miner 发版对齐 reset 后的链协议（旧 binary 必然失效——genesis 换了），重建 9 平台 binary；然后 clean VPS 按 README 全流程自测，成功判据 = explorer 上看到该地址的推理证明 |
+| 2A.2 | miner 发版对齐 reset 后的链协议（旧 binary 必然失效——genesis 换了），重建 9 平台 binary；然后 clean VPS 按 README 全流程自测，成功判据 = explorer 上看到该地址的推理证明。**顺手项**：① CUDA 构建用最新 toolkit 重建并确认 PTX 前向兼容（Blackwell/Rubin 等新架构靠驱动 JIT 即可跑，无需专门适配）；② 确认推理证明验证对跨代 GPU 用容差比对而非 bit-exact（否则新架构浮点差异会被误判作弊，参考 AI-V3 A4b tolerance-band 与 16 号文档）|
 | 2A.3 | landing page（miner.qfc.network）：一屏文案 + `curl \| sh` + 收益估算器（直接引用 Phase 1 模型）|
 | 2A.4 | 矿工首日 dashboard：explorer `/miner/[address]` 页（proof 数、累计奖励）|
 | 2A.5 | 曝光：Twitter + Show HN + 相关 Discord/TG——**人工事项**（发帖、答疑、社区运营）|
@@ -118,6 +118,7 @@ Phase 0 链能跑 ──→ Phase 1 经济自洽 ──→ Phase 2 外部闭环�
 1. **安全**：合约审计（外部，数周墙钟+费用）、共识/节点代码审计、bug bounty
 2. **AI-V3 节点集成**：Feature A 的 apply_settlement 接真实链状态、P2P 广播、N-of-M 操作员共识、VRF 采样熵（qfc-ai-coordinator 里已全部标记）
 3. **B-2 分片推理 build**：门控在"跨区域矿工的真实 RTT/BW 重跑 calculator"——Phase 2 招到多区域矿工后自然解锁
+   - **Datacenter GPU tier**（Grace/Vera + Blackwell/Rubin 级）：训练 + 大模型 batch 推理上线后才有利用率，届时加原生 cubin（CUDA 13.x）、写进 GPU tier 表并在经济模型里单列收益档。Year 0 的小 embedding 任务下这类硬件纯亏损（模型 v2 结论），Phase 2 不推荐、不宣传
 4. **性能**：T1 profiling 发现的 BLAKE3 portable backend、sync-log 写放大；向 500k TPS 目标做基准测试
 5. **主网参数定稿**：Phase 1 草案 + 测试网实测数据修订；genesis 仪式、validator 分配（12 号文档）
 6. **治理最低集**：升级机制、紧急暂停、governance proposal_id 绑定 model_info（B-1 遗留的主网前必修项）
