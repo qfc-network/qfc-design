@@ -1,59 +1,59 @@
-# Agent Token Factory (EVM)
+# Agent 代币工厂（EVM）
 
-**English** | [中文](./36-AGENT-TOKEN-FACTORY-CN.md)
+[English](./36-AGENT-TOKEN-FACTORY-EN.md) | **中文**
 
-> Last Updated: 2026-03-11 | Version 1.0
+> 最后更新：2026-03-11 | 版本 1.0
 > GitHub Issue: #21
-> Author: Alex Wei, Product Manager @ QFC Network
+> 作者：Alex Wei，QFC Network 产品经理
 
 ---
 
-## 1. Executive Summary
+## 1. 摘要
 
-The Agent Token Factory enables AI agents to be tokenized as ERC-20 tokens on QFC's EVM layer, following the Virtuals Protocol pattern. Each agent token is launched via a bonding curve and graduates to a permanent liquidity pool. Revenue from agent operations is distributed: 60% to the agent wallet, 30% to buyback & burn of the agent token, and 10% to the QFC treasury.
+Agent 代币工厂（Agent Token Factory）允许将 AI Agent 在 QFC 的 EVM 层代币化为 ERC-20 代币，遵循 Virtuals Protocol 模式。每个 Agent 代币通过 bonding curve（联合曲线）发射，达标后毕业进入永久流动性池。Agent 运营收入按如下比例分配：60% 给 Agent 钱包，30% 用于回购并销毁 Agent 代币，10% 归 QFC 国库。
 
-**Depends on**: #19 (Agent Capability Resources) — each agent token must be linked to a QVM AgentRegistration resource.
+**依赖**：#19（Agent Capability Resources）——每个 Agent 代币必须关联一个 QVM AgentRegistration 资源。
 
 ---
 
-## 2. Contract Architecture
+## 2. 合约架构
 
 ```
 ┌─────────────────────────────────────────────┐
 │              AgentTokenFactory               │
-│  - createAgent() → deploys new AgentToken    │
-│  - Collects launch fee (100 QFC)             │
-│  - Manages bonding curve parameters          │
+│  - createAgent() → 部署新的 AgentToken        │
+│  - 收取发射费（100 QFC）                      │
+│  - 管理 bonding curve 参数                    │
 ├─────────────────────────────────────────────┤
 │                                             │
 │  ┌──────────────┐  ┌──────────────────────┐ │
 │  │  AgentToken   │  │    BondingCurve      │ │
-│  │  (ERC-20)     │  │  - Sigmoid pricing   │ │
-│  │  + metadata   │  │  - Buy/sell with     │ │
-│  │  + revenue    │  │    slippage protect  │ │
+│  │  (ERC-20)     │  │  - Sigmoid 定价       │ │
+│  │  + 元数据      │  │  - 买入/卖出，带      │ │
+│  │  + 收入        │  │    滑点保护           │ │
 │  └──────┬───────┘  └──────────┬───────────┘ │
 │         │                      │             │
 │  ┌──────┴──────────────────────┴───────────┐ │
 │  │        RevenueDistributor               │ │
-│  │  60% agent wallet                       │ │
-│  │  30% buyback & burn agent token         │ │
-│  │  10% QFC treasury                       │ │
+│  │  60% Agent 钱包                          │ │
+│  │  30% 回购并销毁 Agent 代币                │ │
+│  │  10% QFC 国库                            │ │
 │  └─────────────────────────────────────────┘ │
 │                                             │
 │  ┌─────────────────────────────────────────┐ │
 │  │          LiquidityLock                  │ │
-│  │  - Permanent LP after graduation        │ │
-│  │  - No unlock function                   │ │
+│  │  - 毕业后 LP 永久锁定                     │ │
+│  │  - 无解锁函数                             │ │
 │  └─────────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
 ```
 
-### Deployment Order
-1. `BondingCurve` (library)
+### 部署顺序
+1. `BondingCurve`（库）
 2. `LiquidityLock`
 3. `RevenueDistributor`
-4. `AgentTokenFactory` (references above)
-5. Each `AgentToken` is deployed by the factory via `CREATE2`
+4. `AgentTokenFactory`（引用上述合约）
+5. 每个 `AgentToken` 由 factory 通过 `CREATE2` 部署
 
 ---
 
@@ -207,7 +207,7 @@ contract AgentToken is ERC20 {
 }
 ```
 
-### Agent Metadata JSON (IPFS)
+### Agent 元数据 JSON（IPFS）
 
 ```json
 {
@@ -229,9 +229,9 @@ contract AgentToken is ERC20 {
 
 ## 5. BondingCurve.sol
 
-### 5.1 Price Formula
+### 5.1 价格公式
 
-We use a **sigmoid bonding curve** to create fair price discovery:
+我们采用 **sigmoid bonding curve** 实现公平的价格发现：
 
 ```
 P(s) = P_max / (1 + e^(-k * (s - s_mid)))
@@ -243,23 +243,23 @@ Where:
   s_mid = midpoint supply (inflection point)
 ```
 
-**Default parameters**:
-- `P_max` = 0.001 QFC per token
-- `k` = 0.00000001 (scaled for 1e18 math)
-- `s_mid` = 500,000,000 tokens (500M = half of max supply)
+**默认参数**：
+- `P_max` = 0.001 QFC/代币
+- `k` = 0.00000001（按 1e18 精度缩放）
+- `s_mid` = 500,000,000 代币（500M，即最大供应量的一半）
 
-### 5.2 Price Examples
+### 5.2 价格示例
 
-| Supply Sold | Price (QFC/token) | Cumulative Cost |
+| 已售供应量 | 价格（QFC/代币） | 累计成本 |
 |------------|-------------------|-----------------|
 | 0 | 0.0000001 | 0 |
 | 100M | 0.0000269 | ~1,350 QFC |
 | 250M | 0.0000622 | ~5,500 QFC |
 | 500M | 0.0005000 | ~18,000 QFC |
 | 750M | 0.0009378 | ~35,000 QFC |
-| 1B (graduation) | 0.0009999 | ~42,000 QFC |
+| 1B（毕业） | 0.0009999 | ~42,000 QFC |
 
-### 5.3 Implementation
+### 5.3 实现
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -511,17 +511,17 @@ contract LiquidityLock {
 
 ---
 
-## 8. Cross-VM Bridge
+## 8. 跨 VM 桥
 
-### 8.1 EVM ↔ QVM Link
+### 8.1 EVM ↔ QVM 关联
 
-Each agent token on EVM is linked to a QVM `AgentRegistration` resource via `qvmAgentId`:
+EVM 上的每个 Agent 代币通过 `qvmAgentId` 关联到一个 QVM `AgentRegistration` 资源：
 
 ```
 EVM: AgentToken(0x456...)  ──── qvmAgentId ────►  QVM: AgentRegistration(0xabc...)
 ```
 
-### 8.2 Bridge Contract
+### 8.2 桥合约
 
 ```solidity
 interface IAgentBridge {
@@ -536,15 +536,15 @@ interface IAgentBridge {
 }
 ```
 
-### 8.3 Trust Model
+### 8.3 信任模型
 
-Cross-VM messages are attested by validators (2/3 threshold), same as consensus. The bridge does not introduce additional trust assumptions.
+跨 VM 消息由验证者见证（2/3 阈值），与共识机制相同。桥不引入额外的信任假设。
 
 ---
 
-## 9. SDK Integration
+## 9. SDK 集成
 
-### TypeScript (qfc-sdk-js)
+### TypeScript（qfc-sdk-js）
 
 ```typescript
 import { QFCClient } from '@qfc/sdk-js';
@@ -584,7 +584,7 @@ class AgentTokenSDK {
 }
 ```
 
-### Python (qfc-sdk-python)
+### Python（qfc-sdk-python）
 
 ```python
 from qfc_sdk import QFCClient
@@ -601,48 +601,48 @@ class AgentTokenClient:
 
 ---
 
-## 10. UI Requirements
+## 10. UI 需求
 
-### Agent Launch Wizard (4 steps)
+### Agent 发射向导（4 步）
 
-1. **Agent Details**: Name, symbol, description, avatar upload
-2. **QVM Link**: Select or create QVM AgentRegistration
-3. **Configuration**: Review bonding curve params, metadata preview
-4. **Launch**: Approve launch fee → create agent → confirmation
+1. **Agent 信息**：名称、符号、描述、头像上传
+2. **QVM 关联**：选择或创建 QVM AgentRegistration
+3. **配置**：确认 bonding curve 参数、元数据预览
+4. **发射**：授权发射费 → 创建 Agent → 确认
 
-### Agent Explorer Page
+### Agent 浏览页
 
-- Grid/list view of all agent tokens
-- Sort by: market cap, volume, creation date, reputation
-- Filter by: capability, status (active/graduated)
-- Each card shows: name, symbol, price, market cap, 24h change, creator
+- 所有 Agent 代币的网格/列表视图
+- 排序：市值、交易量、创建时间、声誉
+- 筛选：能力、状态（活跃/已毕业）
+- 每张卡片展示：名称、符号、价格、市值、24h 涨跌、创建者
 
-### Agent Detail Page
+### Agent 详情页
 
-- Price chart (bonding curve position or DEX chart)
-- Buy/sell widget
-- Revenue distribution history
-- Linked QVM agent info (capabilities, reputation, tasks completed)
-- Holder distribution
+- 价格图表（bonding curve 位置或 DEX 图表）
+- 买入/卖出组件
+- 收入分配历史
+- 关联的 QVM Agent 信息（能力、声誉、已完成任务数）
+- 持有者分布
 
 ---
 
-## 11. Security Considerations
+## 11. 安全考量
 
-### Rug Pull Prevention
+### Rug Pull 防范
 
-| Mechanism | Description |
+| 机制 | 说明 |
 |-----------|-------------|
-| **Permanent LP lock** | LiquidityLock has no unlock function |
-| **Factory-only mint** | Only the factory contract can mint agent tokens |
-| **Max supply cap** | Hard cap of 1B tokens per agent |
-| **Launch fee** | 100 QFC prevents spam launches |
-| **No admin mint** | Creator cannot mint additional tokens post-launch |
-| **Bonding curve reserves** | All QFC in the curve is backed by token supply |
+| **LP 永久锁定** | LiquidityLock 没有解锁函数 |
+| **仅 factory 可铸造** | 只有 factory 合约能铸造 Agent 代币 |
+| **最大供应量上限** | 每个 Agent 硬顶 1B 代币 |
+| **发射费** | 100 QFC 防止垃圾发射 |
+| **无管理员铸造** | 创建者在发射后无法增发代币 |
+| **bonding curve 储备金** | 曲线中的所有 QFC 均有代币供应量背书 |
 
-### Gas Estimates
+### Gas 估算
 
-| Operation | Estimated Gas |
+| 操作 | 预估 Gas |
 |-----------|--------------|
 | `createAgent()` | ~350,000 |
 | `buy()` | ~150,000 |
@@ -652,19 +652,19 @@ class AgentTokenClient:
 
 ---
 
-## 12. Testing Strategy
+## 12. 测试策略
 
-### Unit Tests (Foundry)
+### 单元测试（Foundry）
 
-| Suite | Tests | Key Scenarios |
+| 测试套件 | 用例数 | 关键场景 |
 |-------|-------|---------------|
-| `AgentTokenFactory.t.sol` | ~15 | Create agent, duplicate prevention, launch fee |
-| `BondingCurve.t.sol` | ~20 | Buy/sell, slippage, graduation, price accuracy |
-| `RevenueDistributor.t.sol` | ~12 | 60/30/10 split, buyback, batch distribute |
-| `LiquidityLock.t.sol` | ~5 | Lock LP, verify no unlock path |
-| `Integration.t.sol` | ~10 | Full lifecycle: create → buy → earn → distribute |
+| `AgentTokenFactory.t.sol` | ~15 | 创建 Agent、防重复、发射费 |
+| `BondingCurve.t.sol` | ~20 | 买入/卖出、滑点、毕业、价格精度 |
+| `RevenueDistributor.t.sol` | ~12 | 60/30/10 分配、回购、批量分配 |
+| `LiquidityLock.t.sol` | ~5 | 锁定 LP、验证无解锁路径 |
+| `Integration.t.sol` | ~10 | 完整生命周期：创建 → 买入 → 赚取 → 分配 |
 
-### Invariant Tests
+### 不变量测试
 
 ```solidity
 // Foundry invariant tests
@@ -687,21 +687,21 @@ function invariant_maxSupplyNotExceeded() public {
 }
 ```
 
-### Testnet Deployment Plan
+### 测试网部署计划
 
-1. Deploy to QFC testnet
-2. Create 3 test agents with different parameters
-3. Simulate buy/sell cycles
-4. Trigger graduation for 1 agent
-5. Verify revenue distribution
-6. Test cross-VM bridge with QVM AgentRegistration
+1. 部署到 QFC 测试网
+2. 用不同参数创建 3 个测试 Agent
+3. 模拟买入/卖出周期
+4. 触发 1 个 Agent 的毕业流程
+5. 验证收入分配
+6. 用 QVM AgentRegistration 测试跨 VM 桥
 
 ---
 
-## References
+## 参考资料
 
-- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-EN.md) — Virtuals Protocol analysis
-- [28-V3-ROADMAP.md](./28-V3-ROADMAP-EN.md) — v3.0 Phase 4.1
-- [Virtuals Protocol Whitepaper](https://whitepaper.virtuals.io)
-- [ERC-20 Standard](https://eips.ethereum.org/EIPS/eip-20)
-- [Bonding Curve Design Patterns](https://yos.io/2018/11/10/bonding-curves/)
+- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-CN.md) — Virtuals Protocol 分析
+- [28-V3-ROADMAP.md](./28-V3-ROADMAP-CN.md) — v3.0 Phase 4.1
+- [Virtuals Protocol 白皮书](https://whitepaper.virtuals.io)
+- [ERC-20 标准](https://eips.ethereum.org/EIPS/eip-20)
+- [Bonding Curve 设计模式](https://yos.io/2018/11/10/bonding-curves/)

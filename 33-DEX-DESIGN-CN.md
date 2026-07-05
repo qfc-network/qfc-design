@@ -1,5 +1,7 @@
 # 33. QFC DEX — 链上去中心化交易所
 
+[English](./33-DEX-DESIGN-EN.md) | **中文**
+
 > QFC 原生 AMM DEX，支持 QFC/ERC-20 代币互换 + 流动性挖矿。
 
 ## 概述

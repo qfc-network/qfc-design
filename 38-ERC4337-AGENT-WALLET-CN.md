@@ -1,86 +1,86 @@
-# ERC-4337 Agent Wallet
+# ERC-4337 Agent 钱包
 
-**English** | [中文](./38-ERC4337-AGENT-WALLET-CN.md)
+[English](./38-ERC4337-AGENT-WALLET-EN.md) | **中文**
 
-> Last Updated: 2026-03-11 | Version 1.0
+> 最后更新：2026-03-11 | 版本 1.0
 > GitHub Issue: #23
-> Author: Alex Wei, Product Manager @ QFC Network
+> 作者：Alex Wei，产品经理 @ QFC Network
 
 ---
 
-## 1. Executive Summary
+## 1. 执行摘要
 
-This document specifies a smart contract wallet template for AI agents based on ERC-4337 (Account Abstraction). The wallet provides programmable security policies — spending limits, contract allowlists, time-locks, and multi-party approval — enforced on-chain at the wallet level, not the application level.
+本文档定义一个基于 ERC-4337（account abstraction，账户抽象）的 AI Agent 智能合约钱包模板。该钱包提供可编程的安全策略——支出限额、合约白名单、时间锁、多方审批——在钱包层面链上强制执行，而非应用层面。
 
-**Key contracts**:
-- `QFCAgentAccount.sol` — IAccount implementation with session keys
-- `QFCAccountFactory.sol` — Deterministic CREATE2 deployment
-- `QFCPaymaster.sol` — Gas sponsorship for agents
-- `PolicyManager.sol` — Security policy library
+**核心合约**：
+- `QFCAgentAccount.sol` — 带 session key 的 IAccount 实现
+- `QFCAccountFactory.sol` — 基于 CREATE2 的确定性部署
+- `QFCPaymaster.sol` — 为 Agent 代付 gas
+- `PolicyManager.sol` — 安全策略库
 
 ---
 
-## 2. ERC-4337 Background
+## 2. ERC-4337 背景
 
-### Core Concepts
+### 核心概念
 
-| Component | Description |
+| 组件 | 说明 |
 |-----------|-------------|
-| **EntryPoint** | Singleton contract that validates and executes UserOperations |
-| **UserOperation** | Struct representing an intent to execute a transaction (replaces raw tx) |
-| **Account** | Smart contract wallet that validates UserOps (implements `IAccount`) |
-| **Bundler** | Off-chain service that bundles UserOps and submits to EntryPoint |
-| **Paymaster** | Contract that sponsors gas for UserOps (gas abstraction) |
+| **EntryPoint** | 校验并执行 UserOperation 的单例合约 |
+| **UserOperation** | 表示交易执行意图的结构体（替代原始交易） |
+| **Account** | 校验 UserOp 的智能合约钱包（实现 `IAccount`） |
+| **Bundler** | 将多个 UserOp 打包并提交到 EntryPoint 的链下服务 |
+| **Paymaster** | 为 UserOp 代付 gas 的合约（gas 抽象） |
 
-### Flow
+### 流程
 
 ```
-Agent Runtime
+Agent 运行时
     │
-    ├─1─► Construct UserOperation (target, calldata, signature)
+    ├─1─► 构造 UserOperation（target、calldata、签名）
     │
 Bundler
-    ├─2─► Bundle multiple UserOps into single tx
-    ├─3─► Submit to EntryPoint.handleOps()
+    ├─2─► 将多个 UserOp 打包为单笔交易
+    ├─3─► 提交到 EntryPoint.handleOps()
     │
 EntryPoint
-    ├─4─► Call account.validateUserOp() → check signature + policies
-    ├─5─► Call paymaster.validatePaymasterUserOp() → check sponsorship
-    ├─6─► Call account.execute() → execute the actual operation
-    └─7─► Call paymaster.postOp() → settle gas costs
+    ├─4─► 调用 account.validateUserOp() → 校验签名 + 策略
+    ├─5─► 调用 paymaster.validatePaymasterUserOp() → 校验代付资格
+    ├─6─► 调用 account.execute() → 执行实际操作
+    └─7─► 调用 paymaster.postOp() → 结算 gas 费用
 ```
 
 ---
 
-## 3. Contract Architecture
+## 3. 合约架构
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     EntryPoint (v0.7)                    │
-│                   (ERC-4337 singleton)                   │
+│                   （ERC-4337 单例合约）                  │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  ┌──────────────────┐    ┌────────────────────────────┐ │
 │  │ QFCAccountFactory │    │      QFCPaymaster          │ │
-│  │ - CREATE2 deploy  │    │ - Gas sponsorship          │ │
-│  │ - getAddress()    │    │ - Per-agent budgets        │ │
-│  └────────┬─────────┘    │ - Rate limiting            │ │
+│  │ - CREATE2 部署    │    │ - Gas 代付                 │ │
+│  │ - getAddress()    │    │ - 按 Agent 设定预算        │ │
+│  └────────┬─────────┘    │ - 速率限制                 │ │
 │           │               └────────────────────────────┘ │
 │           ▼                                              │
 │  ┌──────────────────────────────────────────────┐       │
 │  │            QFCAgentAccount                    │       │
 │  │  ┌────────────────────────────────────────┐  │       │
 │  │  │           PolicyManager                │  │       │
-│  │  │  - SpendingLimits                      │  │       │
-│  │  │  - ContractAllowlist                   │  │       │
-│  │  │  - TimeLock                            │  │       │
-│  │  │  - MultiPartyApproval                  │  │       │
+│  │  │  - SpendingLimits（支出限额）          │  │       │
+│  │  │  - ContractAllowlist（合约白名单）     │  │       │
+│  │  │  - TimeLock（时间锁）                  │  │       │
+│  │  │  - MultiPartyApproval（多方审批）      │  │       │
 │  │  └────────────────────────────────────────┘  │       │
 │  │  ┌────────────────────────────────────────┐  │       │
 │  │  │        SessionKeyManager               │  │       │
-│  │  │  - Register/revoke keys                │  │       │
-│  │  │  - Scoped permissions                  │  │       │
-│  │  │  - TTL + nonce guard                   │  │       │
+│  │  │  - 注册/撤销密钥                       │  │       │
+│  │  │  - 权限范围限定                        │  │       │
+│  │  │  - TTL + nonce 防护                    │  │       │
 │  │  └────────────────────────────────────────┘  │       │
 │  └──────────────────────────────────────────────┘       │
 └─────────────────────────────────────────────────────────┘
@@ -654,103 +654,103 @@ contract QFCPaymaster is IPaymaster, Ownable {
 
 ---
 
-## 8. Session Key Design
+## 8. Session Key 设计
 
-### 8.1 Lifecycle
+### 8.1 生命周期
 
 ```
-Owner                          QFCAgentAccount                    Agent Runtime
+Owner                          QFCAgentAccount                    Agent 运行时
   │                                 │                                  │
   ├── addSessionKey(key, perms) ───►│                                  │
   │                                 │── emit SessionKeyAdded ─────────►│
   │                                 │                                  │
-  │                                 │◄── UserOp signed with session key│
+  │                                 │◄── 使用 session key 签名的 UserOp│
   │                                 │── validateUserOp()               │
-  │                                 │   ├── check expiry               │
-  │                                 │   ├── check nonce                │
-  │                                 │   ├── check permissions          │
-  │                                 │   └── check spending limit       │
+  │                                 │   ├── 校验有效期                 │
+  │                                 │   ├── 校验 nonce                 │
+  │                                 │   ├── 校验权限                   │
+  │                                 │   └── 校验支出限额               │
   │                                 │── execute()                      │
   │                                 │                                  │
   ├── removeSessionKey(key) ───────►│                                  │
   │                                 │── emit SessionKeyRemoved ───────►│
-  │                                 │   (key immediately invalidated)  │
+  │                                 │   （密钥立即失效）               │
 ```
 
-### 8.2 Permission Scoping
+### 8.2 权限范围
 
-| Bit | Permission | Allowed Operations |
+| 位 | 权限 | 允许的操作 |
 |-----|-----------|-------------------|
-| `0x01` | INFERENCE | Submit inference tasks to AI Coordinator |
-| `0x02` | TRANSFER | ERC-20 token transfers (within spending limit) |
-| `0x04` | STAKE | Stake/unstake QFC tokens |
-| `0x08` | REGISTER | Register sub-agents |
-| `0xFF` | ALL | All operations (equivalent to owner for spending limit duration) |
+| `0x01` | INFERENCE | 向 AI Coordinator 提交推理任务 |
+| `0x02` | TRANSFER | ERC-20 代币转账（受支出限额约束） |
+| `0x04` | STAKE | 质押/解押 QFC 代币 |
+| `0x08` | REGISTER | 注册子 Agent |
+| `0xFF` | ALL | 所有操作（在支出限额有效期内等同于 owner） |
 
-### 8.3 Recommended Configurations
+### 8.3 推荐配置
 
-| Use Case | Permissions | Spending Limit | TTL |
+| 使用场景 | 权限 | 支出限额 | TTL |
 |----------|------------|----------------|-----|
-| Inference-only agent | `0x01` | 50 QFC/day | 7 days |
-| Trading agent | `0x03` | 500 QFC/day | 24 hours |
-| Full autonomy (supervised) | `0xFF` | 1000 QFC/day | 1 hour |
+| 仅推理 Agent | `0x01` | 50 QFC/天 | 7 天 |
+| 交易 Agent | `0x03` | 500 QFC/天 | 24 小时 |
+| 完全自治（受监管） | `0xFF` | 1000 QFC/天 | 1 小时 |
 
 ---
 
-## 9. Security Analysis
+## 9. 安全分析
 
-### 9.1 Attack Vectors & Mitigations
+### 9.1 攻击向量与缓解措施
 
-| Attack | Vector | Mitigation |
+| 攻击 | 向量 | 缓解措施 |
 |--------|--------|------------|
-| **Session key theft** | Attacker obtains session key | TTL auto-expires; spending limit caps damage |
-| **Prompt injection** | LLM tricked into calling unauthorized contract | Contract allowlist blocks unknown targets |
-| **Drain via many small txs** | Stay under per-tx limit | Per-period limit catches cumulative spending |
-| **Flash loan attack** | Borrow → manipulate → repay in single tx | Contract allowlist blocks unknown DeFi |
-| **Replay attack** | Reuse old UserOp | Nonce guard on session keys + EntryPoint nonce |
-| **Paymaster drain** | Agent consumes sponsor's entire deposit | Per-op and per-day caps on sponsorship |
-| **Upgrade attack** | Malicious implementation upgrade | UUPS requires owner signature |
-| **Multi-agent collusion** | Multiple compromised agents coordinate | Each agent has independent limits; no shared keys |
+| **Session key 被盗** | 攻击者获取 session key | TTL 自动过期；支出限额封顶损失 |
+| **提示词注入** | LLM 被诱导调用未授权合约 | 合约白名单拦截未知目标 |
+| **大量小额交易抽干资金** | 每笔都低于单笔限额 | 周期限额拦截累计支出 |
+| **闪电贷攻击** | 单笔交易内借入 → 操纵 → 归还 | 合约白名单拦截未知 DeFi 合约 |
+| **重放攻击** | 重用旧 UserOp | session key 的 nonce 防护 + EntryPoint nonce |
+| **抽干 Paymaster** | Agent 耗尽赞助方全部存款 | 代付设有单次和每日上限 |
+| **升级攻击** | 恶意实现合约升级 | UUPS 要求 owner 签名 |
+| **多 Agent 合谋** | 多个被攻陷的 Agent 协同作案 | 每个 Agent 独立限额；无共享密钥 |
 
-### 9.2 Emergency Procedures
+### 9.2 应急流程
 
-1. **Immediate**: Owner calls `removeSessionKey()` for all active keys
-2. **If owner key compromised**: Governance-triggered freeze via QVM kill switch
-3. **If EntryPoint bug**: Factory deploys accounts pointing to new EntryPoint (upgrade proxy)
+1. **立即处置**：Owner 对所有活跃密钥调用 `removeSessionKey()`
+2. **若 owner 密钥被盗**：通过 QVM kill switch 由治理触发冻结
+3. **若 EntryPoint 存在漏洞**：Factory 部署指向新 EntryPoint 的账户（升级代理）
 
-### 9.3 Circuit Breaker
+### 9.3 熔断机制
 
-Optional: If an account triggers 3+ failed validations in 1 hour, auto-freeze all session keys. Owner must manually re-enable.
+可选：若某账户在 1 小时内触发 3 次以上校验失败，自动冻结所有 session key。需 owner 手动重新启用。
 
 ---
 
-## 10. Integration with QFC AI Coordinator
+## 10. 与 QFC AI Coordinator 集成
 
-### End-to-End: Agent Submits Inference via UserOp
+### 端到端：Agent 通过 UserOp 提交推理
 
 ```
-Agent Runtime
+Agent 运行时
     │
-    ├─► Construct calldata: account.execute(
+    ├─► 构造 calldata: account.execute(
     │       aiCoordinator,    // target
-    │       0,                 // no ETH value
+    │       0,                 // 无 ETH value
     │       abi.encodeCall(AICoordinator.submitTask, (model, input, maxFee))
     │   )
     │
-    ├─► Sign with session key (PERM_INFERENCE required)
+    ├─► 使用 session key 签名（需要 PERM_INFERENCE）
     │
-    ├─► Add paymasterAndData (QFCPaymaster address + sponsor signature)
+    ├─► 附加 paymasterAndData（QFCPaymaster 地址 + 赞助方签名）
     │
-    ├─► Submit UserOp to Bundler
+    ├─► 将 UserOp 提交到 Bundler
     │
 Bundler → EntryPoint
-    ├─► validateUserOp()  → session key valid? permission ok? spending ok?
-    ├─► validatePaymasterUserOp() → sponsor has budget?
-    ├─► execute() → AI Coordinator receives task
-    └─► postOp() → sponsor charged for gas
+    ├─► validateUserOp()  → session key 有效？权限满足？支出合规？
+    ├─► validatePaymasterUserOp() → 赞助方预算充足？
+    ├─► execute() → AI Coordinator 接收任务
+    └─► postOp() → 向赞助方结算 gas
 ```
 
-### Allowlist Configuration for AI Agents
+### AI Agent 的白名单配置
 
 ```solidity
 // Recommended allowlist for inference-only agent:
@@ -764,7 +764,7 @@ account.addAllowedContract(WQFC_ADDRESS);
 
 ---
 
-## 11. SDK Integration
+## 11. SDK 集成
 
 ### TypeScript (qfc-sdk-js)
 
@@ -820,7 +820,7 @@ class AgentAccountSDK {
 }
 ```
 
-### Usage Example
+### 使用示例
 
 ```typescript
 const sdk = new AgentAccountSDK(qfcClient);
@@ -862,39 +862,39 @@ await sdk.submitUserOp({
 
 ---
 
-## 12. Gas Estimates
+## 12. Gas 估算
 
-| Operation | Estimated Gas | Notes |
+| 操作 | 预估 Gas | 说明 |
 |-----------|--------------|-------|
-| `createAccount()` | ~350,000 | First-time proxy deployment |
-| `addSessionKey()` | ~80,000 | Storage writes |
-| `removeSessionKey()` | ~30,000 | Storage update |
-| `execute()` (simple transfer) | ~60,000 | + target execution gas |
-| `execute()` (inference submit) | ~120,000 | + AI Coordinator gas |
-| `executeBatch(3)` | ~250,000 | 3 operations |
-| `validateUserOp()` | ~40,000 | Signature recovery + policy checks |
-| `validatePaymasterUserOp()` | ~25,000 | Sponsorship check |
-| `setPerTxLimit()` | ~30,000 | Storage write |
-| `addAllowedContract()` | ~45,000 | Mapping update |
-| `transferOwnership()` | ~30,000 | Storage write |
-| `requestTimeLock()` | ~70,000 | Storage writes |
+| `createAccount()` | ~350,000 | 首次代理部署 |
+| `addSessionKey()` | ~80,000 | 存储写入 |
+| `removeSessionKey()` | ~30,000 | 存储更新 |
+| `execute()`（简单转账） | ~60,000 | + 目标合约执行 gas |
+| `execute()`（提交推理） | ~120,000 | + AI Coordinator gas |
+| `executeBatch(3)` | ~250,000 | 3 个操作 |
+| `validateUserOp()` | ~40,000 | 签名恢复 + 策略检查 |
+| `validatePaymasterUserOp()` | ~25,000 | 代付资格检查 |
+| `setPerTxLimit()` | ~30,000 | 存储写入 |
+| `addAllowedContract()` | ~45,000 | mapping 更新 |
+| `transferOwnership()` | ~30,000 | 存储写入 |
+| `requestTimeLock()` | ~70,000 | 存储写入 |
 
 ---
 
-## 13. Testing Strategy
+## 13. 测试策略
 
-### Foundry Test Suites
+### Foundry 测试套件
 
-| Suite | Tests | Key Scenarios |
+| 套件 | 测试数 | 关键场景 |
 |-------|-------|---------------|
-| `QFCAgentAccount.t.sol` | ~35 | Owner ops, session keys, execution, policy enforcement |
-| `SessionKey.t.sol` | ~25 | Add/remove, permissions, spending limits, TTL, nonce |
-| `PolicyManager.t.sol` | ~20 | Per-tx limit, per-period limit, allowlist, time-lock |
-| `QFCPaymaster.t.sol` | ~20 | Deposit, sponsor, validate, postOp refund, daily cap |
-| `QFCAccountFactory.t.sol` | ~10 | CREATE2, deterministic address, duplicate deploy |
-| `Integration.t.sol` | ~15 | Full UserOp flow, paymaster + account + session key |
+| `QFCAgentAccount.t.sol` | ~35 | Owner 操作、session key、执行、策略执行 |
+| `SessionKey.t.sol` | ~25 | 添加/移除、权限、支出限额、TTL、nonce |
+| `PolicyManager.t.sol` | ~20 | 单笔限额、周期限额、白名单、时间锁 |
+| `QFCPaymaster.t.sol` | ~20 | 存款、代付、校验、postOp 退款、每日上限 |
+| `QFCAccountFactory.t.sol` | ~10 | CREATE2、确定性地址、重复部署 |
+| `Integration.t.sol` | ~15 | 完整 UserOp 流程、paymaster + account + session key |
 
-### Key Test Scenarios
+### 关键测试场景
 
 ```solidity
 function test_sessionKey_inferenceOnly() public {
@@ -926,35 +926,35 @@ function test_sessionKey_expired() public {
 }
 ```
 
-### Testnet Deployment Plan
+### 测试网部署计划
 
-1. Deploy EntryPoint (or use existing ERC-4337 singleton)
-2. Deploy QFCAccountFactory
-3. Deploy QFCPaymaster
-4. Create test accounts with various policy configs
-5. Submit UserOps via bundler
-6. Test session key lifecycle (add → use → expire → remove)
-7. Test paymaster sponsorship with daily limits
-8. Simulate attack scenarios (replay, overspend, unauthorized contract)
-
----
-
-## 14. Deployment Checklist
-
-- [ ] EntryPoint v0.7 deployed (or use canonical address)
-- [ ] QFCAccountFactory deployed and verified
-- [ ] QFCPaymaster deployed with initial signer
-- [ ] Bundler running and connected to EntryPoint
-- [ ] SDK updated with factory/paymaster addresses
-- [ ] Explorer indexing UserOp events
-- [ ] Documentation published
+1. 部署 EntryPoint（或使用现有 ERC-4337 单例）
+2. 部署 QFCAccountFactory
+3. 部署 QFCPaymaster
+4. 用多种策略配置创建测试账户
+5. 通过 bundler 提交 UserOp
+6. 测试 session key 生命周期（添加 → 使用 → 过期 → 移除）
+7. 测试 paymaster 代付及每日限额
+8. 模拟攻击场景（重放、超额支出、未授权合约）
 
 ---
 
-## References
+## 14. 部署检查清单
 
-- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-EN.md) — Agent security patterns
-- [28-V3-ROADMAP.md](./28-V3-ROADMAP-EN.md) — v3.0 Phase 4.3
+- [ ] EntryPoint v0.7 已部署（或使用规范地址）
+- [ ] QFCAccountFactory 已部署并验证
+- [ ] QFCPaymaster 已部署并配置初始签名者
+- [ ] Bundler 已运行并连接 EntryPoint
+- [ ] SDK 已更新 factory/paymaster 地址
+- [ ] 区块浏览器已索引 UserOp 事件
+- [ ] 文档已发布
+
+---
+
+## 参考资料
+
+- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-CN.md) — Agent 安全模式
+- [28-V3-ROADMAP.md](./28-V3-ROADMAP-CN.md) — v3.0 Phase 4.3
 - [ERC-4337: Account Abstraction](https://eips.ethereum.org/EIPS/eip-4337)
 - [eth-infinitism/account-abstraction](https://github.com/eth-infinitism/account-abstraction)
 - [OpenZeppelin ERC-4337 Utilities](https://docs.openzeppelin.com/contracts/5.x/api/account)

@@ -1,26 +1,26 @@
-# Agent Capability Resources (QVM)
+# Agent 能力资源（QVM）
 
-**English** | [中文](./35-AGENT-CAPABILITY-RESOURCES-CN.md)
+[English](./35-AGENT-CAPABILITY-RESOURCES-EN.md) | **中文**
 
-> Last Updated: 2026-03-11 | Version 1.0
+> 最后更新：2026-03-11 | 版本 1.0
 > GitHub Issue: #19
-> Author: Alex Wei, Product Manager @ QFC Network
+> 作者：Alex Wei，QFC Network 产品经理
 
 ---
 
-## 1. Executive Summary
+## 1. 摘要
 
-This document specifies the QVM (QuantumScript VM) resource types that enforce AI agent capabilities at the VM level. Unlike EVM contract-level permissions (which can have bugs), QVM resources are **Move-style linear types** — they cannot be forged, duplicated, or spent beyond their limits by construction.
+本文档定义 QVM（QuantumScript VM）中用于在 VM 层强制执行 AI agent 能力（capability）的资源类型。与 EVM 合约层权限（可能存在 bug）不同，QVM 资源是 **Move 风格的线性类型**——从构造上就无法被伪造、复制，或超出额度花费。
 
-Two core resources:
-- **InferenceCapability** — right to spend a budget on AI inference tasks
-- **AgentRegistration** — agent identity, discovery metadata, and stake
+两个核心资源：
+- **InferenceCapability**——在 AI 推理任务上花费预算的权利
+- **AgentRegistration**——agent 身份、发现元数据与质押
 
-Together they enable capability-gated inference, agent discovery, and kill switches — all enforced at the VM level.
+二者共同实现能力门控推理、agent 发现与紧急停止开关（kill switch）——全部在 VM 层强制执行。
 
 ---
 
-## 2. Resource Type Definitions
+## 2. 资源类型定义
 
 ### 2.1 InferenceCapability
 
@@ -152,9 +152,9 @@ module qfc::agent_registry {
 
 ---
 
-## 3. Module Functions
+## 3. 模块函数
 
-### 3.1 InferenceCapability Functions
+### 3.1 InferenceCapability 函数
 
 ```move
 /// Create a new inference capability
@@ -253,7 +253,7 @@ public fun destroy(
 }
 ```
 
-### 3.2 AgentRegistration Functions
+### 3.2 AgentRegistration 函数
 
 ```move
 /// Minimum stake tiers
@@ -398,77 +398,77 @@ public fun record_task_result(
 
 ---
 
-## 4. Capability-Gated Inference Flow
+## 4. 能力门控推理流程
 
 ```
-User / Agent Runtime
+用户 / Agent 运行时
     │
-    ├─1─► Submit inference request with capability_id
+    ├─1─► 携带 capability_id 提交推理请求
     │
 AI Coordinator (qfc-ai-coordinator)
     │
-    ├─2─► Load InferenceCapability resource from QVM state
-    │     ├── Check: !frozen
-    │     ├── Check: not expired
-    │     ├── Check: model_id in allowed_models
-    │     └── Check: remaining_budget >= estimated_fee
+    ├─2─► 从 QVM 状态加载 InferenceCapability 资源
+    │     ├── 检查：!frozen
+    │     ├── 检查：未过期
+    │     ├── 检查：model_id 在 allowed_models 中
+    │     └── 检查：remaining_budget >= estimated_fee
     │
-    ├─3─► Load AgentRegistration (if agent-submitted)
-    │     ├── Check: !frozen
-    │     └── Check: reputation_score >= min_threshold
+    ├─3─► 加载 AgentRegistration（若由 agent 提交）
+    │     ├── 检查：!frozen
+    │     └── 检查：reputation_score >= min_threshold
     │
-    ├─4─► Assign task to miner (existing TaskPool flow)
+    ├─4─► 将任务分配给矿工（沿用现有 TaskPool 流程）
     │
-Miner
-    ├─5─► Execute inference → submit result + proof
+矿工
+    ├─5─► 执行推理 → 提交结果 + 证明
     │
 AI Coordinator
-    ├─6─► Verify result (spot-check / zkML)
+    ├─6─► 验证结果（抽查 / zkML）
     │
-    ├─7─► Call use_for_inference(cap, model_id, actual_fee)
-    │     └── Deducts from capability budget atomically
+    ├─7─► 调用 use_for_inference(cap, model_id, actual_fee)
+    │     └── 原子地从 capability 预算中扣除
     │
-    ├─8─► Call record_task_result(agent, success)
-    │     └── Updates reputation score
+    ├─8─► 调用 record_task_result(agent, success)
+    │     └── 更新声誉分
     │
-    └─9─► Return result to caller
+    └─9─► 将结果返回给调用方
 ```
 
-**Key guarantee**: Step 7 is atomic. If the capability doesn't have enough budget, the entire transaction reverts — the miner doesn't execute unpaid work because the budget check happens in step 2 before assignment.
+**关键保证**：第 7 步是原子的。若 capability 预算不足，整个交易回滚——由于预算检查在第 2 步分配之前完成，矿工不会执行没有报酬的工作。
 
 ---
 
-## 5. Kill Switch Mechanism
+## 5. Kill Switch 机制
 
-### 5.1 Freeze vs Destroy
+### 5.1 冻结 vs 销毁
 
-| Action | Effect | Reversible | Who Can Trigger |
+| 操作 | 效果 | 可逆 | 触发者 |
 |--------|--------|------------|-----------------|
-| **Freeze** | Agent/capability cannot be used; funds locked | Yes (unfreeze) | Owner, Governance |
-| **Destroy** | Agent/capability permanently removed; stake/budget refunded | No | Owner only |
+| **冻结（Freeze）** | Agent/capability 不可使用；资金锁定 | 是（解冻） | 所有者、治理 |
+| **销毁（Destroy）** | Agent/capability 永久移除；质押/预算退还 | 否 | 仅所有者 |
 
-### 5.2 Emergency Scenarios
+### 5.2 紧急场景
 
-| Scenario | Action | Trigger |
+| 场景 | 操作 | 触发者 |
 |----------|--------|---------|
-| Compromised session key | Revoke session key + freeze agent | Owner |
-| Agent misbehavior detected | Freeze agent + slash stake | Governance / AI Coordinator |
-| Owner key compromised | Governance freeze (via validator vote) | Governance multisig |
-| Network-wide attack | Governance freezes all agents | Emergency governance action |
+| Session key 泄露 | 撤销 session key + 冻结 agent | 所有者 |
+| 检测到 agent 作恶 | 冻结 agent + 罚没质押 | 治理 / AI Coordinator |
+| 所有者私钥泄露 | 治理冻结（经验证者投票） | 治理多签 |
+| 全网攻击 | 治理冻结所有 agent | 紧急治理动作 |
 
-### 5.3 Governance Freeze Process
+### 5.3 治理冻结流程
 
-1. Any validator can propose an emergency freeze
-2. Requires >2/3 validator vote within 1 hour
-3. Frozen agent cannot execute any operations
-4. Unfreeze requires separate governance vote (>2/3)
-5. Owner cannot unfreeze a governance-frozen agent
+1. 任何验证者均可发起紧急冻结提案
+2. 需在 1 小时内获得 >2/3 验证者投票通过
+3. 被冻结的 agent 无法执行任何操作
+4. 解冻需另行发起治理投票（>2/3）
+5. 所有者无法解冻被治理冻结的 agent
 
 ---
 
-## 6. Discovery API
+## 6. 发现 API
 
-### 6.1 RPC Endpoints
+### 6.1 RPC 端点
 
 #### `qfc_listAgents`
 
@@ -582,7 +582,7 @@ AI Coordinator
 }
 ```
 
-### 6.2 Rust Registry Index
+### 6.2 Rust 注册表索引
 
 ```rust
 // qfc-core/crates/qfc-qvm/src/agent_index.rs
@@ -617,98 +617,98 @@ impl AgentIndex {
 
 ---
 
-## 7. Staking Economics
+## 7. 质押经济学
 
-### 7.1 Stake Tiers
+### 7.1 质押层级
 
-| Tier | Minimum Stake | Benefits |
+| 层级 | 最低质押 | 权益 |
 |------|--------------|----------|
-| **Basic** | 100 QFC | Can register, limited to 10 tasks/day |
-| **Verified** | 1,000 QFC | Unlimited tasks, lower spot-check rate |
-| **Premium** | 10,000 QFC | Priority task assignment, featured in discovery |
+| **Basic** | 100 QFC | 可注册，限 10 任务/天 |
+| **Verified** | 1,000 QFC | 无任务上限，抽查率更低 |
+| **Premium** | 10,000 QFC | 任务分配优先，发现结果中优先展示 |
 
-### 7.2 Slashing Conditions
+### 7.2 罚没条件
 
-| Violation | Slash Amount | Reputation Impact |
+| 违规行为 | 罚没金额 | 声誉影响 |
 |-----------|-------------|-------------------|
-| Failed verification (bad inference result) | 1% of stake | -50 points |
-| Timeout (accepted task, no result) | 0.5% of stake | -25 points |
-| Consecutive failures (3+) | 5% of stake | -500 points + auto-freeze |
-| Governance-determined misconduct | Up to 100% | Set to 0 + permanent freeze |
+| 验证失败（错误推理结果） | 质押的 1% | -50 分 |
+| 超时（接受任务后未交付结果） | 质押的 0.5% | -25 分 |
+| 连续失败（3 次及以上） | 质押的 5% | -500 分 + 自动冻结 |
+| 治理认定的不当行为 | 最高 100% | 归零 + 永久冻结 |
 
-### 7.3 Unstaking Process
+### 7.3 解除质押流程
 
-1. Owner calls `revoke(agent)`
-2. Stake enters **cooldown period** (7 days)
-3. During cooldown: agent is frozen, stake is locked, any pending slashing is applied
-4. After cooldown: remaining stake is returned to owner
-5. Resource is destroyed (Move semantics)
+1. 所有者调用 `revoke(agent)`
+2. 质押进入**冷却期**（7 天）
+3. 冷却期内：agent 被冻结，质押锁定，待处理的罚没照常执行
+4. 冷却期结束后：剩余质押退还所有者
+5. 资源被销毁（Move 语义）
 
-### 7.4 Reputation Scoring
+### 7.4 声誉评分
 
 ```
-reputation_score: u64  // 0 - 10000 (basis points)
+reputation_score: u64  // 0 - 10000（基点）
 
-Starting score:     5000 (50%)
-Per success:        +10
-Per failure:        -50
-Per slash:          -500
-Maximum:            10000
-Minimum:            0
+起始分：            5000（50%）
+每次成功：          +10
+每次失败：          -50
+每次罚没：          -500
+上限：              10000
+下限：              0
 
-Benefits of high reputation:
-- reputation >= 8000: spot-check rate reduced from 10% to 5%
-- reputation >= 9000: eligible for premium task assignment
-- reputation < 2000: restricted to Basic tier regardless of stake
+高声誉的权益：
+- reputation >= 8000：抽查率由 10% 降至 5%
+- reputation >= 9000：有资格获得优质任务分配
+- reputation < 2000：无论质押多少，均限制在 Basic 层级
 ```
 
 ---
 
-## 8. Security Analysis
+## 8. 安全性分析
 
-### 8.1 QVM vs EVM Comparison
+### 8.1 QVM vs EVM 对比
 
-| Property | EVM (Contract-level) | QVM (Resource-level) |
+| 属性 | EVM（合约层） | QVM（资源层） |
 |----------|---------------------|---------------------|
-| Budget enforcement | `require(balance >= fee)` — can have reentrancy bugs | Resource arithmetic — VM prevents underflow |
-| Capability forgery | Possible via contract bugs | Impossible — resources are linear types |
-| Duplication | Possible via reentrancy | Impossible — Move prevents copy |
-| Kill switch | Admin function (can be bypassed) | Resource freeze (VM-enforced) |
-| Overflow/Underflow | Solidity 0.8+ checks, but older contracts vulnerable | VM-level bounds checking |
+| 预算执行 | `require(balance >= fee)`——可能存在重入 bug | 资源算术——VM 防止下溢 |
+| Capability 伪造 | 可能通过合约 bug 实现 | 不可能——资源是线性类型 |
+| 复制 | 可能通过重入实现 | 不可能——Move 禁止 copy |
+| Kill switch | 管理员函数（可被绕过） | 资源冻结（VM 强制执行） |
+| 上溢/下溢 | Solidity 0.8+ 有检查，但旧合约存在风险 | VM 层边界检查 |
 
-### 8.2 Attack Vectors & Mitigations
+### 8.2 攻击向量与缓解措施
 
-| Attack | Vector | Mitigation |
+| 攻击 | 向量 | 缓解措施 |
 |--------|--------|------------|
-| **Sybil registration** | Register many cheap agents | Minimum stake + QIB benchmark |
-| **Capability drain** | Rapid small tasks to drain budget | Per-period spending limits + rate limiting |
-| **Stale agent** | Register and never run tasks | Heartbeat requirement; agents inactive >24h deprioritized |
-| **Reputation farming** | Complete easy tasks to inflate score | Weighted scoring by task difficulty |
-| **Front-running** | Intercept task assignment | Task assignment is validator-internal, not in mempool |
+| **女巫注册** | 注册大量廉价 agent | 最低质押 + QIB 基准测试 |
+| **Capability 抽干** | 快速发起小额任务耗尽预算 | 按周期的花费限额 + 速率限制 |
+| **僵尸 agent** | 注册后从不执行任务 | 心跳要求；不活跃 >24h 的 agent 降低优先级 |
+| **刷声誉** | 完成简单任务刷分 | 按任务难度加权计分 |
+| **抢跑** | 拦截任务分配 | 任务分配在验证者内部完成，不进 mempool |
 
 ---
 
-## 9. Integration with EVM Layer
+## 9. 与 EVM 层的集成
 
-### 9.1 Cross-VM Architecture
+### 9.1 跨 VM 架构
 
 ```
-EVM Layer                           QVM Layer
+EVM 层                              QVM 层
 ┌────────────────────┐              ┌─────────────────────┐
-│ AgentTokenFactory  │◄── bridge ──►│ AgentRegistration    │
-│ (ERC-20 tokens)    │              │ (Resource)           │
+│ AgentTokenFactory  │◄── 桥接 ────►│ AgentRegistration    │
+│ (ERC-20 代币)      │              │ (资源)               │
 │                    │              │                      │
 │ RevenueDistributor │              │ InferenceCapability  │
-│ (60/30/10 split)   │              │ (Resource)           │
+│ (60/30/10 分成)    │              │ (资源)               │
 │                    │              │                      │
 │ QFCAgentAccount    │              │ SessionKey           │
-│ (ERC-4337 wallet)  │              │ (Resource)           │
+│ (ERC-4337 钱包)    │              │ (资源)               │
 └────────────────────┘              └─────────────────────┘
          │                                    │
-         └──────── Cross-VM Message Bus ──────┘
+         └───────── 跨 VM 消息总线 ───────────┘
 ```
 
-### 9.2 Bridge Contract
+### 9.2 桥接合约
 
 ```solidity
 interface IAgentBridge {
@@ -725,62 +725,62 @@ interface IAgentBridge {
 
 ---
 
-## 10. Testing Strategy
+## 10. 测试策略
 
-### 10.1 Unit Tests
+### 10.1 单元测试
 
-| Module | Test Count | Key Scenarios |
+| 模块 | 测试数量 | 关键场景 |
 |--------|-----------|---------------|
-| `inference_capability` | ~25 | Create, use, top-up, freeze, destroy, expiry, model allowlist |
-| `agent_registry` | ~30 | Register, update, freeze, slash, revoke, heartbeat, reputation |
-| `agent_index` | ~15 | Query by capability, by protocol, rebuild from state |
-| `session_keys` | ~20 | Issue, validate, rotate, revoke, TTL, nonce, permissions |
+| `inference_capability` | ~25 | 创建、使用、充值、冻结、销毁、过期、模型白名单 |
+| `agent_registry` | ~30 | 注册、更新、冻结、罚没、注销、心跳、声誉 |
+| `agent_index` | ~15 | 按 capability 查询、按协议查询、从状态重建 |
+| `session_keys` | ~20 | 签发、验证、轮换、撤销、TTL、nonce、权限 |
 
-### 10.2 Integration Tests
+### 10.2 集成测试
 
-| Scenario | Components |
+| 场景 | 涉及组件 |
 |----------|-----------|
-| Full inference with capability | Capability + AI Coordinator + Miner |
-| Agent registration → task execution → reputation update | Registry + Coordinator + Capability |
-| Slash on bad result → reputation drop → auto-freeze | Registry + Verification + Slash |
-| Cross-VM: register agent → create EVM token | Registry + Bridge + TokenFactory |
-| Discovery: register 100 agents → query by capability | Registry + Index + RPC |
+| 带 capability 的完整推理流程 | Capability + AI Coordinator + 矿工 |
+| Agent 注册 → 任务执行 → 声誉更新 | Registry + Coordinator + Capability |
+| 错误结果罚没 → 声誉下降 → 自动冻结 | Registry + 验证 + 罚没 |
+| 跨 VM：注册 agent → 创建 EVM 代币 | Registry + Bridge + TokenFactory |
+| 发现：注册 100 个 agent → 按 capability 查询 | Registry + Index + RPC |
 
-### 10.3 Adversarial Tests
+### 10.3 对抗性测试
 
-- Attempt to use frozen capability → must fail
-- Attempt to use expired capability → must fail
-- Attempt to overspend budget → must fail
-- Attempt to use model not in allowlist → must fail
-- Concurrent task submissions exceeding budget → only valid ones succeed
-- Sybil: register 100 agents from same owner → stake requirements hold
-
----
-
-## 11. Migration Path from v2.0
-
-### Phase 1: Additive (Week 1-2)
-- Deploy `inference_capability` and `agent_registry` modules to QVM
-- Existing inference flow continues unchanged
-- New capability-gated path available as opt-in
-
-### Phase 2: Soft Migration (Week 3-4)
-- SDK updated to prefer capability-gated path
-- Existing direct inference still works but deprecated
-- Discovery API enabled
-
-### Phase 3: Enforcement (Week 5+)
-- All inference requests require InferenceCapability
-- Legacy path removed
-- Full agent registry with staking required
-
-**Backwards compatibility**: During Phase 1-2, a "default capability" with unlimited budget is auto-created for existing users, preserving the v2.0 behavior.
+- 尝试使用被冻结的 capability → 必须失败
+- 尝试使用已过期的 capability → 必须失败
+- 尝试超预算花费 → 必须失败
+- 尝试使用不在白名单中的模型 → 必须失败
+- 并发提交任务超出预算 → 仅有效任务成功
+- 女巫攻击：同一所有者注册 100 个 agent → 质押要求仍然生效
 
 ---
 
-## References
+## 11. 从 v2.0 的迁移路径
 
-- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-EN.md) — Research basis
-- [28-V3-ROADMAP.md](./28-V3-ROADMAP-EN.md) — v3.0 overall roadmap, Phase 3.2
+### 阶段 1：增量部署（第 1-2 周）
+- 向 QVM 部署 `inference_capability` 与 `agent_registry` 模块
+- 现有推理流程保持不变
+- 新的能力门控路径作为可选项（opt-in）开放
+
+### 阶段 2：软迁移（第 3-4 周）
+- SDK 更新为优先使用能力门控路径
+- 现有直接推理仍可用，但标记为废弃
+- 启用发现 API
+
+### 阶段 3：强制执行（第 5 周起）
+- 所有推理请求必须携带 InferenceCapability
+- 移除旧路径
+- 完整启用带质押要求的 agent 注册表
+
+**向后兼容**：在阶段 1-2 期间，系统为现有用户自动创建一个预算无限的"默认 capability"，保持 v2.0 的行为不变。
+
+---
+
+## 参考资料
+
+- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-CN.md) — 研究基础
+- [28-V3-ROADMAP.md](./28-V3-ROADMAP-CN.md) — v3.0 总体路线图，Phase 3.2
 - [Move Language Documentation](https://move-language.github.io/move/)
 - [Sui Object Model](https://docs.sui.io/concepts/object-model)
