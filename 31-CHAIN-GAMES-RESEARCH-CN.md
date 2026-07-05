@@ -1,5 +1,7 @@
 # 31. QFC 链游研究报告（Chain Games Research）
 
+[English](./31-CHAIN-GAMES-RESEARCH-EN.md) | **中文**
+
 > 基于 QFC 独特的 AI + 区块链架构，分析适合 QFC 的链游方向。
 
 ---

@@ -1,5 +1,7 @@
 # 32. QFC 链游部署策略（Deployment Strategy）
 
+[English](./32-DEPLOYMENT-STRATEGY-EN.md) | **中文**
+
 > 如何将 QFC 链游从 localhost 部署到公网，让任何人都能玩。
 
 ---

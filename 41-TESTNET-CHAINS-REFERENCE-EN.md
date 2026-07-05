@@ -1,5 +1,9 @@
 # Testnet Chains Reference
 
+**English** | [中文](./41-TESTNET-CHAINS-REFERENCE-CN.md)
+
+> ⚠️ All contract addresses listed here are DEAD since the 2026-07-05 testnet genesis reset; this document will be refreshed after contract redeployment (Phase 0.5).
+
 > Last updated: 2026-04-11
 
 Quick reference for all testnet chains used in the QFC Bridge ecosystem.

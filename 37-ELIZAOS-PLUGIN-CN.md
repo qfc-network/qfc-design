@@ -1,64 +1,64 @@
 # ElizaOS Plugin
 
-**English** | [中文](./37-ELIZAOS-PLUGIN-CN.md)
+[English](./37-ELIZAOS-PLUGIN-EN.md) | **中文**
 
-> Last Updated: 2026-03-11 | Version 1.0
+> 最后更新：2026-03-11 | 版本 1.0
 > GitHub Issue: #22
-> Author: Alex Wei, Product Manager @ QFC Network
+> 作者：Alex Wei，QFC Network 产品经理
 
 ---
 
-## 1. Executive Summary
+## 1. 摘要
 
-`@qfc/elizaos-plugin` is an npm package that enables ElizaOS AI agents to use QFC's native AI inference network. It wraps `@qfc/sdk-js` and exposes ElizaOS-native actions, providers, and evaluators.
+`@qfc/elizaos-plugin` 是一个 npm 包，使 ElizaOS AI Agent 能够使用 QFC 原生 AI 推理网络。它封装 `@qfc/sdk-js`，并暴露 ElizaOS 原生的 action、provider 和 evaluator。
 
-**Key capability**: ElizaOS agents can call `RUN_INFERENCE` to submit inference tasks to QFC's decentralized miner network — with verified results, capability-gated access, and automatic budget management.
+**核心能力**：ElizaOS Agent 可调用 `RUN_INFERENCE` 向 QFC 去中心化矿工网络提交推理任务——结果可验证、访问受 capability 门控、预算自动管理。
 
-**Depends on**: #18 (Cross-chain oracle for multi-chain agents), #19 (Agent capability resources for budget management)
+**依赖**：#18（多链 Agent 的跨链预言机）、#19（用于预算管理的 Agent capability 资源）
 
 ---
 
-## 2. ElizaOS Plugin Architecture
+## 2. ElizaOS Plugin 架构
 
-ElizaOS v2 uses a modular plugin system:
+ElizaOS v2 采用模块化 plugin 系统：
 
 ```
 ElizaOS Runtime
-├── Core (memory, planning, LLM routing)
-├── Plugins (extend capabilities)
+├── Core（记忆、规划、LLM 路由）
+├── Plugins（扩展能力）
 │   ├── Plugin = { name, actions, providers, evaluators }
-│   ├── Action = handles a specific user intent
-│   ├── Provider = injects context into LLM prompts
-│   └── Evaluator = post-processes agent responses
-└── Clients (Discord, Telegram, Twitter, etc.)
+│   ├── Action = 处理某个特定用户意图
+│   ├── Provider = 向 LLM prompt 注入上下文
+│   └── Evaluator = 对 Agent 响应做后处理
+└── Clients（Discord、Telegram、Twitter 等）
 ```
 
-Each plugin is an npm package that exports a `Plugin` object. The runtime loads plugins at startup and routes messages to matching actions.
+每个 plugin 都是一个导出 `Plugin` 对象的 npm 包。运行时在启动时加载 plugin，并将消息路由到匹配的 action。
 
 ---
 
-## 3. Package Structure
+## 3. 包结构
 
 ```
 @qfc/elizaos-plugin/
 ├── package.json
 ├── tsconfig.json
 ├── src/
-│   ├── index.ts                 # Plugin export
-│   ├── plugin.ts                # Plugin definition
+│   ├── index.ts                 # Plugin 导出
+│   ├── plugin.ts                # Plugin 定义
 │   ├── actions/
 │   │   ├── runInference.ts      # RUN_INFERENCE action
 │   │   ├── checkCapability.ts   # CHECK_CAPABILITY action
 │   │   ├── registerAgent.ts     # REGISTER_AGENT action
 │   │   └── queryAgents.ts       # QUERY_AGENTS action
 │   ├── providers/
-│   │   ├── balanceProvider.ts   # QFC balance context
-│   │   └── capabilityProvider.ts # Capability status context
+│   │   ├── balanceProvider.ts   # QFC 余额上下文
+│   │   └── capabilityProvider.ts # Capability 状态上下文
 │   ├── evaluators/
-│   │   └── inferenceQuality.ts  # Result quality evaluator
+│   │   └── inferenceQuality.ts  # 结果质量 evaluator
 │   ├── client/
-│   │   └── qfcClient.ts        # QFC SDK wrapper for ElizaOS
-│   └── types.ts                 # Shared types
+│   │   └── qfcClient.ts        # 面向 ElizaOS 的 QFC SDK 封装
+│   └── types.ts                 # 共享类型
 ├── tests/
 │   ├── actions/
 │   ├── providers/
@@ -71,9 +71,9 @@ Each plugin is an npm package that exports a `Plugin` object. The runtime loads 
 
 ---
 
-## 4. Plugin Interface Implementation
+## 4. Plugin 接口实现
 
-### 4.1 Plugin Definition
+### 4.1 Plugin 定义
 
 ```typescript
 // src/plugin.ts
@@ -298,7 +298,7 @@ export const queryAgentsAction: Action = {
 
 ---
 
-## 5. QFC Client Wrapper
+## 5. QFC 客户端封装
 
 ```typescript
 // src/client/qfcClient.ts
@@ -392,7 +392,7 @@ export class QFCPluginClient {
 
 ---
 
-## 6. Providers
+## 6. Provider
 
 ### Balance Provider
 
@@ -433,7 +433,7 @@ export const capabilityProvider: Provider = {
 
 ---
 
-## 7. Evaluators
+## 7. Evaluator
 
 ```typescript
 // src/evaluators/inferenceQuality.ts
@@ -473,9 +473,9 @@ export const inferenceQualityEvaluator: Evaluator = {
 
 ---
 
-## 8. Configuration
+## 8. 配置
 
-### Environment Variables
+### 环境变量
 
 ```bash
 # Required
@@ -491,7 +491,7 @@ QFC_AUTO_REFILL_AMOUNT=50       # QFC
 QFC_MAX_INFERENCE_FEE=10        # Max QFC per single inference
 ```
 
-### ElizaOS Character Config
+### ElizaOS Character 配置
 
 ```json
 {
@@ -507,9 +507,9 @@ QFC_MAX_INFERENCE_FEE=10        # Max QFC per single inference
 
 ---
 
-## 9. Example Agents
+## 9. Agent 示例
 
-### 9.1 Sentiment Trading Agent
+### 9.1 情绪交易 Agent
 
 ```typescript
 // examples/sentiment-trader/character.json
@@ -534,7 +534,7 @@ QFC_MAX_INFERENCE_FEE=10        # Max QFC per single inference
 }
 ```
 
-### 9.2 Content Generator Agent
+### 9.2 内容生成 Agent
 
 ```typescript
 // examples/content-generator/character.json
@@ -552,7 +552,7 @@ QFC_MAX_INFERENCE_FEE=10        # Max QFC per single inference
 }
 ```
 
-### 9.3 AI Oracle Agent
+### 9.3 AI 预言机 Agent
 
 ```typescript
 // examples/ai-oracle/character.json
@@ -572,9 +572,9 @@ QFC_MAX_INFERENCE_FEE=10        # Max QFC per single inference
 
 ---
 
-## 10. Testing Strategy
+## 10. 测试策略
 
-### Unit Tests
+### 单元测试
 
 ```typescript
 // tests/actions/runInference.test.ts
@@ -593,7 +593,7 @@ describe('Capability Provider', () => {
 });
 ```
 
-### Integration Tests (QFC Testnet)
+### 集成测试（QFC 测试网）
 
 ```typescript
 // tests/integration/fullFlow.test.ts
@@ -611,9 +611,9 @@ describe('Full Agent Flow (testnet)', () => {
 
 ---
 
-## 11. Publishing Plan
+## 11. 发布计划
 
-### npm Package
+### npm 包
 
 ```json
 {
@@ -633,25 +633,25 @@ describe('Full Agent Flow (testnet)', () => {
 }
 ```
 
-### CI/CD (GitHub Actions)
+### CI/CD（GitHub Actions）
 
-1. On push to `main`: run tests → build → publish to npm
-2. On PR: run tests only
-3. Semantic versioning via conventional commits
-4. Automated changelog generation
+1. push 到 `main`：跑测试 → 构建 → 发布到 npm
+2. PR：仅跑测试
+3. 通过 conventional commits 做语义化版本
+4. 自动生成 changelog
 
-### Versioning
+### 版本策略
 
-- Follow ElizaOS plugin versioning conventions
-- Major version tracks ElizaOS major version (e.g., `2.x` for ElizaOS v2)
-- `@qfc/sdk-js` is a peer dependency — user controls SDK version
+- 遵循 ElizaOS plugin 版本约定
+- 主版本号跟随 ElizaOS 主版本（如 ElizaOS v2 对应 `2.x`）
+- `@qfc/sdk-js` 为 peer dependency——SDK 版本由使用者控制
 
 ---
 
-## References
+## 参考资料
 
-- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-EN.md) — ElizaOS analysis
-- [28-V3-ROADMAP.md](./28-V3-ROADMAP-EN.md) — v3.0 Phase 4.2
-- [ElizaOS Documentation](https://docs.elizaos.ai/)
-- [ElizaOS Plugin Guide](https://docs.elizaos.ai/plugins)
+- [24-AI-AGENT-FRAMEWORK.md](./24-AI-AGENT-FRAMEWORK-CN.md) — ElizaOS 分析
+- [28-V3-ROADMAP.md](./28-V3-ROADMAP-CN.md) — v3.0 Phase 4.2
+- [ElizaOS 文档](https://docs.elizaos.ai/)
+- [ElizaOS Plugin 指南](https://docs.elizaos.ai/plugins)
 - [ElizaOS GitHub](https://github.com/elizaOS/eliza)
